@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2b2118">
+<title>The House Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4ecdd;
+    --bg2:#efe4d0;
+    --ink:#2b2118;
+    --ink-soft:#6b5d4c;
+    --line:#e0d3bc;
+    --card:#fbf6ec;
+    --card-edge:#eaddc6;
+    --isa:#d96440;        /* Isabella - terracotta */
+    --isa-soft:#fbe6dd;
+    --vic:#2f8f83;        /* Victoria - teal */
+    --vic-soft:#dcefea;
+    --both:#9a6c2f;       /* shared - amber/bronze */
+    --both-soft:#f3e6cf;
+    --par:#5b6b8a;        /* parents - slate blue */
+    --par-soft:#e4e8f0;
+    --gold:#c9a23f;
+    --shadow:0 1px 2px rgba(43,33,24,.06),0 8px 24px rgba(43,33,24,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 85% -10%, #f8efde 0%, rgba(248,239,222,0) 60%),
+      radial-gradient(900px 500px at -10% 110%, #ece0c8 0%, rgba(236,224,200,0) 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"Hanken Grotesk",system-ui,sans-serif;
+    line-height:1.45;
+    min-height:100vh;
+    padding:0 0 calc(40px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px;}
+
+  /* ---------- Header ---------- */
+  header{
+    padding:26px 0 14px;
+    position:relative;
+  }
+  .kicker{
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink-soft);font-weight:600;margin:0 0 4px;
+  }
+  h1{
+    font-family:"Fraunces",serif;font-weight:800;font-size:clamp(34px,9vw,52px);
+    line-height:.95;margin:0;letter-spacing:-.01em;
+  }
+  h1 em{font-style:italic;color:var(--isa);font-weight:600;}
+  .sub{color:var(--ink-soft);font-size:14.5px;margin:10px 0 0;max-width:46ch;}
+
+  /* ---------- Legend / filters ---------- */
+  .controls{
+    display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;
+  }
+  .chip{
+    appearance:none;border:1.5px solid var(--line);background:var(--card);
+    color:var(--ink);font-family:inherit;font-weight:600;font-size:13.5px;
+    padding:9px 14px;border-radius:100px;cursor:pointer;display:inline-flex;
+    align-items:center;gap:7px;transition:transform .12s ease,box-shadow .12s ease,border-color .12s,background .12s;
+  }
+  .chip:active{transform:scale(.96);}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;flex:none;}
+  .dot.isa{background:var(--isa);}
+  .dot.vic{background:var(--vic);}
+  .dot.both{background:linear-gradient(135deg,var(--isa) 0 50%,var(--vic) 50% 100%);}
+  .dot.par{background:var(--par);}
+  .chip[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink) inset;border-color:var(--ink);}
+  .chip.isaF[aria-pressed="true"]{box-shadow:0 0 0 2px var(--isa) inset;border-color:var(--isa);background:var(--isa-soft);}
+  .chip.vicF[aria-pressed="true"]{box-shadow:0 0 0 2px var(--vic) inset;border-color:var(--vic);background:var(--vic-soft);}
+  .chip.parF[aria-pressed="true"]{box-shadow:0 0 0 2px var(--par) inset;border-color:var(--par);background:var(--par-soft);}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--card);border:1px solid var(--card-edge);border-radius:var(--radius);
+    box-shadow:var(--shadow);margin-top:18px;overflow:hidden;
+  }
+  .card-pad{padding:18px;}
+  .card-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px;}
+  .card-title{font-family:"Fraunces",serif;font-weight:600;font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin:0;}
+
+  /* ---------- Agenda (today / selected) ---------- */
+  #agenda{scroll-margin-top:10px;}
+  .agenda-top{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:20px 18px 8px;
+  }
+  .agenda-date{display:flex;flex-direction:column;}
+  .agenda-day{font-family:"Fraunces",serif;font-weight:800;font-size:30px;line-height:1;letter-spacing:-.01em;}
+  .agenda-full{color:var(--ink-soft);font-size:13.5px;margin-top:5px;font-weight:500;}
+  .today-badge{
+    background:var(--ink);color:var(--bg);font-size:11px;font-weight:700;letter-spacing:.12em;
+    padding:5px 10px;border-radius:100px;text-transform:uppercase;margin-left:9px;vertical-align:middle;
+  }
+  .ring{position:relative;width:62px;height:62px;flex:none;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:14px;}
+
+  /* ---------- Task list ---------- */
+  ul.tasks{list-style:none;margin:6px 0 0;padding:6px 0 8px;}
+  .task{
+    display:flex;align-items:flex-start;gap:12px;padding:11px 18px;
+    border-top:1px solid var(--line);position:relative;
+  }
+  .task:first-child{border-top:none;}
+  .check{
+    appearance:none;width:24px;height:24px;border-radius:8px;border:2px solid var(--line);
+    background:var(--card);flex:none;margin-top:1px;cursor:pointer;display:grid;place-items:center;
+    transition:background .15s,border-color .15s,transform .1s;
+  }
+  .check:active{transform:scale(.9);}
+  .check:checked{background:var(--vic);border-color:var(--vic);}
+  .check:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translateY(-1px);}
+  .t-main{flex:1;min-width:0;cursor:pointer;}
+  .t-name{font-weight:600;font-size:15.5px;}
+  .task.done .t-name{text-decoration:line-through;color:var(--ink-soft);}
+  .t-meta{display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap;}
+  .t-cat{font-size:11.5px;color:var(--ink-soft);letter-spacing:.04em;}
+  .t-desc{
+    font-size:13.5px;color:var(--ink-soft);margin-top:7px;line-height:1.5;
+    max-height:0;overflow:hidden;transition:max-height .28s ease,margin .28s ease;
+  }
+  .task.open .t-desc{max-height:120px;margin-top:7px;}
+  .who{
+    font-size:11px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:100px;
+    display:inline-flex;align-items:center;gap:5px;text-transform:uppercase;flex:none;
+  }
+  .who.isa{background:var(--isa-soft);color:#a8421f;}
+  .who.vic{background:var(--vic-soft);color:#1d6259;}
+  .who.both{background:var(--both-soft);color:#7a5316;}
+  .who.par{background:var(--par-soft);color:#37466a;}
+  .empty{padding:26px 18px;color:var(--ink-soft);text-align:center;font-size:14px;}
+  .chev{color:var(--line);font-size:12px;margin-top:3px;transition:transform .2s;flex:none;}
+  .task.open .chev{transform:rotate(90deg);color:var(--ink-soft);}
+
+  /* ---------- Calendar ---------- */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px;}
+  .cal-title{font-family:"Fraunces",serif;font-weight:600;font-size:19px;}
+  .nav{display:flex;gap:8px;}
+  .nav button{
+    width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--card);
+    font-size:17px;color:var(--ink);cursor:pointer;display:grid;place-items:center;transition:background .12s,transform .1s;
+  }
+  .nav button:active{transform:scale(.92);background:var(--bg2);}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 8px 12px;}
+  .wd{text-align:center;font-size:11px;font-weight:700;color:var(--ink-soft);padding:4px 0 6px;letter-spacing:.04em;}
+  .cell{
+    aspect-ratio:1/1.04;border:none;background:transparent;border-radius:12px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+    font-family:inherit;font-size:14.5px;font-weight:600;color:var(--ink);position:relative;
+    transition:background .12s,transform .1s;padding:0;
+  }
+  .cell:active{transform:scale(.93);}
+  .cell.muted{color:#c3b59c;}
+  .cell.today{background:var(--bg2);}
+  .cell.today .num{color:var(--isa);font-weight:800;}
+  .cell.sel{background:var(--ink);color:var(--bg);}
+  .cell.sel .num{color:var(--bg);}
+  .cell .num{line-height:1;}
+  .cell .dots{display:flex;gap:3px;height:6px;align-items:center;}
+  .cell .dots i{width:5px;height:5px;border-radius:50%;display:block;}
+  .cell .dots i.isa{background:var(--isa);}
+  .cell .dots i.vic{background:var(--vic);}
+  .cell.sel .dots i.isa{background:#f1a98f;}
+  .cell.sel .dots i.vic{background:#8fd0c6;}
+
+  /* ---------- Fairness ---------- */
+  .fair-row{display:flex;align-items:center;gap:12px;margin-top:14px;}
+  .fair-row:first-of-type{margin-top:6px;}
+  .fair-name{width:74px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px;flex:none;}
+  .bar{flex:1;height:14px;background:var(--bg2);border-radius:100px;overflow:hidden;}
+  .bar span{display:block;height:100%;border-radius:100px;transition:width .8s cubic-bezier(.2,.8,.2,1);}
+  .bar span.isa{background:var(--isa);}
+  .bar span.vic{background:var(--vic);}
+  .fair-num{width:30px;text-align:right;font-weight:700;font-size:14px;flex:none;}
+  .fair-note{font-size:12.5px;color:var(--ink-soft);margin-top:14px;}
+
+  /* ---------- Category browser ---------- */
+  .acc{border-top:1px solid var(--line);}
+  .acc:first-child{border-top:none;}
+  .acc-h{
+    width:100%;background:none;border:none;font-family:inherit;cursor:pointer;
+    display:flex;align-items:center;gap:12px;padding:15px 18px;color:var(--ink);text-align:left;
+  }
+  .acc-ico{font-size:19px;width:24px;text-align:center;flex:none;}
+  .acc-name{font-weight:700;font-size:15.5px;flex:1;}
+  .acc-count{font-size:12px;color:var(--ink-soft);font-weight:600;}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+  .acc.open .acc-body{max-height:1400px;}
+  .acc-item{padding:0 18px 14px 54px;}
+  .acc-item .n{font-weight:600;font-size:14.5px;}
+  .acc-item .d{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  .acc .acc-h .arr{transition:transform .25s;color:var(--ink-soft);}
+  .acc.open .acc-h .arr{transform:rotate(90deg);}
+
+  /* ---------- Week pill ---------- */
+  .wkpill{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:2px 8px;border-radius:100px;margin-left:6px;vertical-align:middle;}
+  .wkpill.a{background:var(--isa-soft);color:#a8421f;}
+  .wkpill.b{background:var(--vic-soft);color:#1d6259;}
+
+  /* ---------- Done / completion ---------- */
+  .done-bar{padding:4px 16px 18px;}
+  .done-btn{width:100%;border:none;border-radius:14px;cursor:pointer;font-family:inherit;font-weight:700;
+    font-size:15px;color:#fff;padding:15px 16px;background:linear-gradient(135deg,#2f8f83,#3aa697);
+    box-shadow:0 6px 18px rgba(47,143,131,.32);transition:transform .12s,box-shadow .12s;}
+  .done-btn:active{transform:scale(.97);}
+
+  /* ---------- Bottom sheet ---------- */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(43,33,24,.42);
+    display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;
+    transition:opacity .25s;z-index:50;}
+  .sheet-overlay.show{opacity:1;pointer-events:auto;}
+  .sheet{background:var(--card);width:100%;max-width:680px;border-radius:24px 24px 0 0;
+    padding:14px 20px calc(26px + env(safe-area-inset-bottom));position:relative;
+    transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 -10px 40px rgba(43,33,24,.28);}
+  .sheet-overlay.show .sheet{transform:translateY(0);}
+  .sheet-handle{width:42px;height:5px;border-radius:100px;background:var(--line);margin:2px auto 16px;}
+  .sheet-title{font-family:"Fraunces",serif;font-weight:600;font-size:22px;margin:0 0 4px;}
+  .sheet-sub{color:var(--ink-soft);font-size:14px;margin:0 0 16px;}
+  .sheet-names{display:flex;gap:12px;}
+  .name-btn{flex:1;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:18px 12px;
+    font-family:inherit;font-weight:700;font-size:16px;cursor:pointer;display:flex;flex-direction:column;
+    align-items:center;gap:9px;transition:transform .12s,border-color .12s,background .12s;color:var(--ink);}
+  .name-btn .dot{width:16px;height:16px;}
+  .name-btn:active{transform:scale(.96);}
+  .name-btn.isa:hover{border-color:var(--isa);background:var(--isa-soft);}
+  .name-btn.vic:hover{border-color:var(--vic);background:var(--vic-soft);}
+  .sheet-msg{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+    font-size:13.5px;line-height:1.55;white-space:pre-wrap;color:var(--ink);max-height:230px;overflow:auto;margin-bottom:16px;}
+  .sheet-none{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px;
+    font-size:14px;color:var(--ink-soft);text-align:center;line-height:1.5;margin-bottom:4px;}
+  .sheet-actions{display:flex;gap:10px;}
+  .act{flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:13px;padding:14px;
+    font-family:inherit;font-weight:700;font-size:14.5px;color:var(--ink);cursor:pointer;transition:transform .1s,background .12s;}
+  .act:active{transform:scale(.96);}
+  .act.primary{background:var(--vic);color:#fff;border-color:var(--vic);}
+  .sheet-back{background:none;border:none;color:var(--ink-soft);font-family:inherit;font-size:13.5px;
+    font-weight:600;cursor:pointer;margin-top:14px;padding:6px 0;}
+  .sheet-close{position:absolute;top:14px;right:16px;width:32px;height:32px;border-radius:50%;border:none;
+    background:var(--bg2);color:var(--ink-soft);font-size:14px;cursor:pointer;}
+
+  /* ---------- Live sync indicator + done stamp ---------- */
+  .live{display:flex;align-items:center;gap:7px;padding:2px 18px 2px;font-size:11.5px;color:var(--ink-soft);font-weight:600;}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:#c2b59c;flex:none;}
+  .live.on .live-dot{background:#2f8f83;box-shadow:0 0 0 3px rgba(47,143,131,.16);animation:pulse 2s infinite;}
+  .live.off .live-dot{background:#d9893f;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .t-stamp{font-size:11.5px;color:var(--vic);font-weight:700;}
+
+  /* ---------- Recent history ---------- */
+  .hist-toggle{display:flex;gap:8px;margin:2px 0 16px;}
+  .htbtn{appearance:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+    font-family:inherit;font-weight:600;font-size:13px;padding:8px 14px;border-radius:100px;cursor:pointer;
+    transition:transform .1s,border-color .12s,background .12s;}
+  .htbtn:active{transform:scale(.96);}
+  .htbtn[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1.5px var(--ink) inset;}
+  .hist-head{display:flex;align-items:center;gap:10px;padding:0 2px 4px;}
+  .hist-head .hh-date{width:60px;flex:none;}
+  .hist-head .hh-people{flex:1;display:flex;gap:12px;}
+  .hist-head .hh-people span{flex:1;font-size:11.5px;font-weight:700;color:var(--ink-soft);
+    display:flex;align-items:center;gap:6px;}
+  .hist-head .dot{width:9px;height:9px;}
+  .hist-row{width:100%;display:flex;align-items:center;gap:10px;padding:10px 2px;border:none;
+    background:none;border-top:1px solid var(--line);cursor:pointer;font-family:inherit;text-align:left;}
+  .hist-row:active{background:var(--bg2);}
+  .hist-date{width:60px;flex:none;display:flex;flex-direction:column;line-height:1.18;}
+  .hd-wd{font-weight:700;font-size:13px;color:var(--ink);}
+  .hist-row.today .hd-wd{color:var(--isa);}
+  .hd-md{font-size:11px;color:var(--ink-soft);}
+  .hist-people{flex:1;display:flex;gap:12px;}
+  .hist-p{flex:1;display:flex;align-items:center;gap:8px;}
+  .mini{flex:1;height:10px;background:var(--bg2);border-radius:100px;overflow:hidden;}
+  .mini span{display:block;height:100%;border-radius:100px;}
+  .mini span.isa{background:var(--isa);}
+  .mini span.vic{background:var(--vic);}
+  .hist-pct{font-size:11.5px;font-weight:700;width:34px;text-align:right;flex:none;color:var(--ink-soft);}
+  .hist-pct.full{color:var(--vic);}
+  .hist-empty{font-size:11.5px;color:#c3b59c;flex:1;}
+
+  /* ---------- Showdown ---------- */
+  .sd-duel{display:flex;align-items:stretch;gap:8px;margin-top:4px;}
+  .sd-girl{flex:1;position:relative;text-align:center;padding:16px 6px 12px;border-radius:16px;
+    background:var(--bg2);border:1.5px solid var(--line);}
+  .crown{position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:22px;}
+  .flame{font-size:34px;line-height:1;filter:grayscale(1);opacity:.35;transition:.3s;}
+  .flame.t1{filter:none;opacity:1;}
+  .flame.t2{filter:none;opacity:1;text-shadow:0 0 10px rgba(217,100,64,.6);}
+  .flame.t3{filter:none;opacity:1;font-size:38px;text-shadow:0 0 16px rgba(217,100,64,.85);}
+  .flame.t4{filter:none;opacity:1;font-size:40px;text-shadow:0 0 20px rgba(58,166,151,.95);}
+  .flame.t5{filter:none;opacity:1;font-size:44px;text-shadow:0 0 26px rgba(201,162,63,1);}
+  .sd-num{font-family:"Fraunces",serif;font-weight:800;font-size:34px;line-height:1;margin-top:4px;}
+  .sd-lbl{font-size:11px;color:var(--ink-soft);letter-spacing:.03em;}
+  .sd-sub{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:13.5px;margin-top:8px;}
+  .sd-sub .dot{width:9px;height:9px;}
+  .sd-cups{font-size:11px;color:var(--ink-soft);margin-top:3px;}
+  .sd-vs{display:flex;align-items:center;font-family:"Fraunces",serif;font-style:italic;font-weight:600;color:var(--ink-soft);font-size:15px;}
+  .sd-week{margin-top:16px;}
+  .sd-week-h{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:7px;}
+  .tug{display:flex;height:16px;border-radius:100px;overflow:hidden;background:var(--bg2);}
+  .tug-i{background:var(--isa);transition:width .7s cubic-bezier(.2,.8,.2,1);}
+  .tug-v{background:var(--vic);transition:width .7s cubic-bezier(.2,.8,.2,1);}
+  .sd-week-nums{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;margin-top:6px;color:var(--ink-soft);}
+
+  /* ---------- Trophy case ---------- */
+  .badge-count{font-size:12px;font-weight:700;color:var(--ink-soft);}
+  .badge-toggle{display:flex;gap:8px;margin:12px 0 14px;}
+  .btgl{flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:10px;
+    font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:7px;color:var(--ink);transition:transform .1s;}
+  .btgl:active{transform:scale(.97);}
+  .btgl .dot{width:10px;height:10px;}
+  .btgl.isaF[aria-pressed="true"]{box-shadow:0 0 0 1.5px var(--isa) inset;border-color:var(--isa);background:var(--isa-soft);}
+  .btgl.vicF[aria-pressed="true"]{box-shadow:0 0 0 1.5px var(--vic) inset;border-color:var(--vic);background:var(--vic-soft);}
+  .badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .badge{border-radius:14px;padding:13px 6px;text-align:center;border:1.5px solid var(--line);background:var(--bg2);}
+  .badge.locked{opacity:.5;filter:grayscale(1);}
+  .badge.earned.isa{border-color:var(--isa);background:var(--isa-soft);}
+  .badge.earned.vic{border-color:var(--vic);background:var(--vic-soft);}
+  .b-ico{font-size:26px;line-height:1;}
+  .b-name{font-weight:700;font-size:12px;margin-top:6px;}
+  .b-crit{font-size:10.5px;color:var(--ink-soft);margin-top:2px;line-height:1.3;}
+
+  /* ---------- Rewards ---------- */
+  .rw-hint{font-size:12.5px;color:var(--ink-soft);margin:2px 0 14px;}
+  .rw{border-top:1px solid var(--line);padding:13px 0;}
+  .rw:first-of-type{border-top:none;padding-top:2px;}
+  .rw-top{display:flex;align-items:center;gap:12px;}
+  .rw-ico{font-size:22px;flex:none;}
+  .rw-name{font-weight:700;font-size:14.5px;}
+  .rw-goal{font-size:12px;color:var(--ink-soft);}
+  .rw-girls{display:flex;gap:8px;margin-top:11px;}
+  .rw-girl{flex:1;border-radius:11px;padding:10px 8px;font-family:inherit;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid var(--line);
+    background:var(--card);color:var(--ink-soft);}
+  .rw-girl .dot{width:8px;height:8px;}
+  .rw-girl.locked{opacity:.65;}
+  .rw-girl.unlocked{cursor:pointer;color:var(--ink);}
+  .rw-girl.unlocked.isa{border-color:var(--isa);}
+  .rw-girl.unlocked.vic{border-color:var(--vic);}
+  .rw-girl.given{cursor:pointer;}
+  .rw-girl.given.isa{background:var(--isa);color:#fff;border-color:var(--isa);}
+  .rw-girl.given.vic{background:var(--vic);color:#fff;border-color:var(--vic);}
+  .rw-girl.given .dot{background:#fff;}
+
+  /* ---------- Celebration ---------- */
+  .confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;}
+  .confetti-layer i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;opacity:.92;
+    animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(560deg);}}
+  .toast{position:fixed;left:50%;top:16px;transform:translateX(-50%) translateY(-160%);
+    background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-size:14px;font-weight:600;
+    z-index:61;box-shadow:0 10px 34px rgba(43,33,24,.32);transition:transform .38s cubic-bezier(.2,.8,.2,1);
+    max-width:90%;text-align:center;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* ---------- User chip / switch ---------- */
+  .userbar{display:flex;align-items:center;gap:10px;margin-top:16px;}
+  .user-chip{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1.5px solid var(--line);
+    border-radius:100px;padding:7px 13px;font-weight:700;font-size:13.5px;}
+  .user-chip .dot{width:11px;height:11px;}
+  .switch-btn{background:none;border:none;color:var(--ink-soft);font-family:inherit;font-size:13px;
+    font-weight:600;text-decoration:underline;cursor:pointer;padding:6px;}
+  .live.err .live-dot{background:#cc4b37;}
+
+  /* locked (not-yours) checkbox */
+  .check:disabled{opacity:.4;cursor:not-allowed;border-style:dashed;}
+  .task.notmine{opacity:.92;}
+
+  /* ---------- Login gate ---------- */
+  .gate{position:fixed;inset:0;z-index:90;background:
+      radial-gradient(900px 500px at 80% -10%, #f8efde, rgba(248,239,222,0) 60%), var(--bg);
+    display:flex;align-items:center;justify-content:center;padding:24px;}
+  .gate[hidden]{display:none;}
+  .gate-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--card-edge);
+    border-radius:24px;box-shadow:var(--shadow);padding:30px 24px 26px;text-align:center;}
+  .gate-logo{font-size:40px;}
+  .gate-title{font-family:"Fraunces",serif;font-weight:800;font-size:24px;margin:10px 0 20px;}
+  .gate-people{display:flex;flex-direction:column;gap:11px;}
+  .gate-person{display:flex;align-items:center;gap:14px;border:1.5px solid var(--line);background:var(--card);
+    border-radius:16px;padding:16px 18px;font-family:inherit;font-weight:700;font-size:17px;color:var(--ink);
+    cursor:pointer;transition:transform .12s,border-color .12s,background .12s;}
+  .gate-person:active{transform:scale(.97);}
+  .gate-person .gp-emoji{font-size:24px;}
+  .gate-person.isa:hover{border-color:var(--isa);background:var(--isa-soft);}
+  .gate-person.vic:hover{border-color:var(--vic);background:var(--vic-soft);}
+  .gate-person.par:hover{border-color:var(--both);background:var(--both-soft);}
+  .gate-sub{font-size:15px;color:var(--ink-soft);margin:0 0 16px;font-weight:600;}
+  .gate-pin{width:100%;text-align:center;font-size:28px;letter-spacing:.4em;padding:14px;border-radius:14px;
+    border:1.5px solid var(--line);background:var(--bg2);font-family:inherit;color:var(--ink);}
+  .gate-pin:focus{outline:none;border-color:var(--ink);}
+  .gate-err{color:#cc4b37;font-size:13px;font-weight:600;height:18px;margin:8px 0 0;}
+  .gate-actions{display:flex;gap:10px;margin-top:16px;}
+  .gate-back{flex:none;background:none;border:none;color:var(--ink-soft);font-family:inherit;font-weight:600;
+    font-size:14px;cursor:pointer;padding:14px 8px;}
+  .gate-go{flex:1;background:var(--ink);color:var(--bg);border:none;border-radius:13px;padding:14px;
+    font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;}
+  #gatePin2{margin-top:10px;}
+  .gate-forgot{display:block;margin:16px auto 0;background:none;border:none;color:var(--ink-soft);
+    font-family:inherit;font-size:13px;font-weight:600;text-decoration:underline;cursor:pointer;}
+
+  /* ---------- PIN admin ---------- */
+  .pa-row{display:flex;align-items:center;gap:8px;padding:11px 0;border-top:1px solid var(--line);}
+  .pa-row:first-of-type{border-top:none;}
+  .pa-name{flex:1;min-width:84px;display:flex;align-items:center;gap:7px;font-weight:700;font-size:14px;}
+  .pa-name .dot{width:10px;height:10px;}
+  .pa-pin{width:92px;flex:none;border:1.5px solid var(--line);background:var(--bg2);border-radius:10px;
+    padding:9px 10px;font-family:inherit;font-size:14px;color:var(--ink);}
+  .pa-pin:focus{outline:none;border-color:var(--ink);}
+  .pa-save,.pa-clear{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:10px;
+    padding:9px 11px;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer;color:var(--ink);}
+  .pa-save{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+  .pa-msg{font-size:12.5px;color:var(--vic);font-weight:600;margin:12px 0 0;min-height:16px;}
+
+  footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px;}
+  .reset{background:none;border:none;color:var(--isa);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline;padding:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="kicker">Isabella &amp; Victoria</p>
+    <h1>The House <em>Schedule</em></h1>
+    <p class="sub">Tap any task to see what it involves and check it off. Tap a date to view that day. Chores rotate every week — whatever one of you does this week, the other does next week.</p>
+    <div class="userbar" id="userbar">
+      <span class="user-chip"><span class="dot" id="userDot"></span><span id="userLabel"></span></span>
+      <button class="switch-btn" id="changePinBtn">Change PIN</button>
+      <button class="switch-btn" id="switchBtn">Switch user</button>
+    </div>
+    <div class="controls" id="filters">
+      <button class="chip" data-filter="all" aria-pressed="true">All chores</button>
+      <button class="chip isaF" data-filter="I" aria-pressed="false"><span class="dot isa"></span>Isabella</button>
+      <button class="chip vicF" data-filter="V" aria-pressed="false"><span class="dot vic"></span>Victoria</button>
+      <button class="chip parF" data-filter="P" aria-pressed="false"><span class="dot par"></span>Parents</button>
+    </div>
+  </header>
+
+  <!-- AGENDA -->
+  <section class="card" id="agenda">
+    <div class="agenda-top">
+      <div class="agenda-date">
+        <span class="agenda-day" id="agDay"></span>
+        <span class="agenda-full" id="agFull"></span>
+      </div>
+      <div class="ring" id="ring">
+        <svg width="62" height="62"><circle cx="31" cy="31" r="26" fill="none" stroke="#e7dcc6" stroke-width="7"></circle>
+        <circle id="ringFg" cx="31" cy="31" r="26" fill="none" stroke="#2f8f83" stroke-width="7" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4"></circle></svg>
+        <span class="pct" id="ringPct">0%</span>
+      </div>
+    </div>
+    <div class="live" id="live"><span class="live-dot"></span><span id="liveText">Saved on this device only</span></div>
+    <ul class="tasks" id="taskList"></ul>
+    <div class="done-bar"><button id="doneBtn" class="done-btn">📲 I'm finished — text the parents</button></div>
+  </section>
+
+  <!-- SHOWDOWN -->
+  <section class="card card-pad" id="showdown">
+    <div class="card-h"><p class="card-title">🔥 Streak Showdown</p></div>
+    <div class="sd-duel" id="sdDuel"></div>
+    <div class="sd-week">
+      <div class="sd-week-h"><span>This week's duel</span><span id="sdWeekLead"></span></div>
+      <div class="tug"><span class="tug-i" id="tugI"></span><span class="tug-v" id="tugV"></span></div>
+      <div class="sd-week-nums"><span id="sdWi"></span><span id="sdWv"></span></div>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="card">
+    <div class="cal-head">
+      <span class="cal-title" id="calTitle"></span>
+      <div class="nav">
+        <button id="prev" aria-label="Previous month">‹</button>
+        <button id="today" aria-label="Jump to today">•</button>
+        <button id="next" aria-label="Next month">›</button>
+      </div>
+    </div>
+    <div class="grid" id="weekdays"></div>
+    <div class="grid" id="calGrid"></div>
+  </section>
+
+  <!-- FAIRNESS -->
+  <section class="card card-pad">
+    <div class="card-h"><p class="card-title">Weekly Load — Swaps Every Week</p></div>
+    <div class="fair-row">
+      <span class="fair-name"><span class="dot isa"></span>Isabella</span>
+      <div class="bar"><span class="isa" id="barI"></span></div>
+      <span class="fair-num" id="numI">0</span>
+    </div>
+    <div class="fair-row">
+      <span class="fair-name"><span class="dot vic"></span>Victoria</span>
+      <div class="bar"><span class="vic" id="barV"></span></div>
+      <span class="fair-num" id="numV">0</span>
+    </div>
+    <p class="fair-note" id="fairNote"></p>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="card card-pad">
+    <div class="card-h"><p class="card-title">Recent History</p></div>
+    <div class="hist-toggle" id="histToggle">
+      <button class="htbtn" data-days="7" aria-pressed="true">Last 7 days</button>
+      <button class="htbtn" data-days="30" aria-pressed="false">Last 30 days</button>
+    </div>
+    <div class="hist-head">
+      <span class="hh-date"></span>
+      <div class="hh-people">
+        <span><span class="dot isa"></span>Isabella</span>
+        <span><span class="dot vic"></span>Victoria</span>
+      </div>
+    </div>
+    <div id="histBody"></div>
+  </section>
+
+  <!-- BADGES -->
+  <section class="card card-pad">
+    <div class="card-h"><p class="card-title">🏅 Trophy Case</p><span class="badge-count" id="badgeCount"></span></div>
+    <div class="badge-toggle" id="badgeToggle">
+      <button class="btgl isaF" data-who="I" aria-pressed="true"><span class="dot isa"></span>Isabella</button>
+      <button class="btgl vicF" data-who="V" aria-pressed="false"><span class="dot vic"></span>Victoria</button>
+    </div>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </section>
+
+  <!-- REWARDS -->
+  <section class="card card-pad">
+    <div class="card-h"><p class="card-title">🎁 Rewards</p></div>
+    <p class="rw-hint">Real-world rewards parents set. Tap “Mark given” when you hand one out.</p>
+    <div id="rewardList"></div>
+  </section>
+
+  <!-- PIN ADMIN (parents only) -->
+  <section class="card card-pad" id="pinAdmin" hidden>
+    <div class="card-h"><p class="card-title">🔐 Manage Kids' PINs</p></div>
+    <p class="rw-hint">Set a new PIN for a girl, or clear it so she creates her own at next login.</p>
+    <div class="pa-row" data-who="I">
+      <span class="pa-name"><span class="dot isa"></span>Isabella</span>
+      <input class="pa-pin" type="password" inputmode="numeric" maxlength="6" placeholder="new PIN">
+      <button class="pa-save">Save</button>
+      <button class="pa-clear">Clear</button>
+    </div>
+    <div class="pa-row" data-who="V">
+      <span class="pa-name"><span class="dot vic"></span>Victoria</span>
+      <input class="pa-pin" type="password" inputmode="numeric" maxlength="6" placeholder="new PIN">
+      <button class="pa-save">Save</button>
+      <button class="pa-clear">Clear</button>
+    </div>
+    <p class="pa-msg" id="paMsg"></p>
+  </section>
+
+  <!-- BROWSE -->
+  <section class="card">
+    <div class="card-pad" style="padding-bottom:6px;"><p class="card-title">All Chores &amp; Descriptions</p></div>
+    <div id="browse"></div>
+  </section>
+
+  <footer>
+    Built for Isabella &amp; Victoria · Recurring weekly schedule<br>
+    <button class="reset" id="reset">Reset all check-offs</button>
+  </footer>
+</div>
+
+<!-- CELEBRATION -->
+<div class="confetti-layer" id="confetti"></div>
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN GATE -->
+<div class="gate" id="gate" hidden>
+  <div class="gate-card">
+    <div class="gate-logo">🏡</div>
+    <h2 class="gate-title">Who's using the app?</h2>
+    <div class="gate-people" id="gateStep1">
+      <button class="gate-person isa" data-who="I"><span class="gp-emoji">🌸</span>Isabella</button>
+      <button class="gate-person vic" data-who="V"><span class="gp-emoji">🦋</span>Victoria</button>
+      <button class="gate-person par" data-who="parent"><span class="gp-emoji">🔑</span>Parents</button>
+    </div>
+    <div id="gateStep2" hidden>
+      <p class="gate-sub" id="gatePrompt"></p>
+      <input id="gatePin" class="gate-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+      <input id="gatePin2" class="gate-pin" type="password" inputmode="numeric" maxlength="6" placeholder="confirm PIN" autocomplete="off" hidden>
+      <p class="gate-err" id="gateErr"></p>
+      <div class="gate-actions">
+        <button class="gate-back" id="gateBack">← Back</button>
+        <button class="gate-go" id="gateGo">Enter</button>
+      </div>
+      <button class="gate-forgot" id="gateForgot" hidden>Forgot PIN?</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETION SHEET -->
+<div class="sheet-overlay" id="sheet" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <button class="sheet-close" id="sheetClose" aria-label="Close">✕</button>
+    <div id="sheetStep1">
+      <h3 class="sheet-title">Who's finished?</h3>
+      <p class="sheet-sub">Pick your name so we know which chores to include.</p>
+      <div class="sheet-names">
+        <button class="name-btn isa" data-who="I"><span class="dot isa"></span>Isabella</button>
+        <button class="name-btn vic" data-who="V"><span class="dot vic"></span>Victoria</button>
+      </div>
+    </div>
+    <div id="sheetStep2" hidden>
+      <h3 class="sheet-title" id="sheetName"></h3>
+      <p class="sheet-sub" id="sheetSummary"></p>
+      <div class="sheet-msg" id="sheetMsg"></div>
+      <div class="sheet-actions">
+        <button class="act primary" id="openSms">Open Messages</button>
+        <button class="act" id="copyMsg">Copy text</button>
+      </div>
+      <button class="sheet-back" id="sheetBack">← Pick a different name</button>
+    </div>
+  </div>
+</div>
+
+<!-- Realtime sync (loads only if you set up Firebase; harmless otherwise) -->
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
+<script>
+/* ============ DATA ============
+   days index: 0 Sun · 1 Mon · 2 Tue · 3 Wed · 4 Thu · 5 Fri · 6 Sat
+   value: "" none · "I" Isabella · "V" Victoria · "B" Both           */
+const CATS = {
+  personal:{name:"Personal", icon:"🚿"},
+  kitchen:{name:"Kitchen", icon:"🍽️"},
+  restrooms:{name:"Restrooms", icon:"🧼"},
+  upstairs:{name:"Upstairs", icon:"🧹"},
+  living:{name:"Living · Laundry · Dining", icon:"🛋️"},
+  laundry:{name:"Laundry", icon:"🧺"},
+  trash:{name:"Trash", icon:"🗑️"},
+  pets:{name:"Pets", icon:"🐾"},
+  outdoor:{name:"Outdoor", icon:"🌳"}
+};
+
+const CHORES = [
+  {c:"personal", n:"Brush and floss teeth", d:"Brush and floss teeth - take are of those pearly whites!", days:["B","B","B","B","B","B","B"]},
+  {c:"personal", n:"Shower (body)", d:"Quick daily shower to stay fresh — body wash, rinse, done.", days:["","B","B","","B","B","B"]},
+  {c:"personal", n:"Shower (body & hair)", d:"Full shower including washing and conditioning your hair.", days:["B","","","B","","",""]},
+  {c:"personal", n:"Clean bedroom", d:"Make the bed, clear the floor, and put away anything left out.", days:["","","","B","","","B"]},
+
+  {c:"kitchen", n:"Wash kitchen dishes", d:"Hand-wash everything in the sink, dry it, and put it away.", days:["V","I","V","I","V","V","I"]},
+  {c:"kitchen", n:"Collect dishes from all rooms", d:"Walk the house and bring every cup and plate to the kitchen sink.", days:["V","I","V","I","V","I","B"]},
+  {c:"kitchen", n:"Empty the dishwasher", d:"Unload clean dishes and return each item to its spot.", days:["V","I","V","I","V","I","I"]},
+
+  {c:"restrooms", n:"Clean upstairs restroom", d:"Wipe the sink and counter, scrub the toilet, clean the mirror and floor.", days:["V","","","","I","",""]},
+  {c:"restrooms", n:"Clean downstairs guest restroom", d:"Wipe the sink and toilet, refill supplies, quick floor clean.", days:["","","","V","","","I"]},
+
+  {c:"upstairs", n:"Clean office", d:"Dust surfaces, tidy the desk, and vacuum the office floor.", days:["","","","","","","B"]},
+  {c:"upstairs", n:"Vacuum all of upstairs", d:"Vacuum every upstairs room and the hallway.", days:["","","","","","","I"]},
+  {c:"upstairs", n:"Clean and organize game room", d:"Pick up clutter, organize and clean (wipe down) game room.", days:["","I","","","","",""]},
+
+  {c:"living", n:"Sweep laundry room", d:"Sweep up lint, dust, and debris from the laundry room floor.", days:["V","I","V","I","V","I","V"]},
+  {c:"living", n:"Clean dining tables", d:"Wipe down all dining tables after meals.", days:["I","V","I","V","I","V","I"]},
+  {c:"living", n:"Clean french door windows", d:"Clean the living room french door glass inside and out — streak-free.", days:["","","","","","","V"]},
+  {c:"living", n:"Vacuum and mop the living room floor", d:"Vacuum and mop the living room rug and floor.", days:["","","","","","","I"]},
+  {c:"living", n:"Vacuum stairs", d:"Vacuum each step and the landing.", days:["","","","","","","V"]},
+
+  {c:"laundry", n:"Wash and Dry family clothes", d:"Gather clothes from drity hampers and wash/dry.", days:["I","","","","","",""]},
+  {c:"laundry", n:"Fold underwear & socks", d:"Match and fold socks and underwear for the whole house.", days:["B","","","","","",""]},
+  {c:"laundry", n:"Bring laundry downstairs", d:"Carry the dirty laundry baskets down to the laundry room and separate by colors into different hampers (prepare to wash).", days:["B","","","","","",""]},
+  {c:"laundry", n:"Put away clean clothes", d:"Put your clean, folded clothes where they belong.", days:["B","B","B","B","B","B","B"]},
+
+  {c:"trash", n:"Collect trash & place in outdoor trash bin", d:"Empty the bins from rooms and restrooms, bag it, and place in outdoor trash bin.", days:["","","I","","","V",""]},
+
+  {c:"pets", n:"Make dog food", d:"Prepare and cook food for Peter. Store this food in the freezer in a plastic container.", days:["V","","","","","",""]},
+  {c:"pets", n:"Wash dog dishes", d:"Clean and refill the dog food and water bowls.", days:["I","V","I","V","I","V","I"]},
+  {c:"pets", n:"Give Peter a bath", d:"Bathe Peter, towel dry, and brush him out.", days:["","","","","","","I"]},
+  {c:"pets", n:"Brush Peter's hair", d:"Brush both dogs to cut down on shedding and matting.", days:["","","I","","","",""]},
+  {c:"pets", n:"Feed Peter (morning)", d:"Morning feeding for both dogs.", days:["I","V","I","V","I","V","I"]},
+  {c:"pets", n:"Feed Peter (evening)", d:"Evening feeding for both dogs.", days:["I","V","I","V","I","V","I"]},
+  {c:"pets", n:"Pick up Peter's toys in the backyard", d:"Pick up Peter's toys in the backyard.", days:["","","","","","","V"]},
+
+  {c:"outdoor", n:"Water plants", d:"Water front and backyard plants.", days:["P","","","","P","",""]},
+  {c:"outdoor", n:"Organize backyard table and sitting area", d:"Clean up and declutter covered area and wipe down table", days:["","","","","","P",""]}
+];
+
+function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60); }
+(function(){ const seen={}; CHORES.forEach(c=>{ let base=slug(c.c+"-"+c.n)||"chore", k=base, n=1; while(seen[k]){ k=base+"-"+(++n); } seen[k]=1; c.key=k; }); })();
+
+const WHO = {I:{label:"Isabella",cls:"isa"}, V:{label:"Victoria",cls:"vic"}, B:{label:"Both",cls:"both"}, P:{label:"Parents",cls:"par"}};
+const DAYNAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+/* ============ STATE + STORAGE (guarded so it never crashes) ============ */
+/* ============ SHARED SYNC (Firebase Realtime Database) ============
+   To sync across phones in real time, paste your Firebase config below.
+   Leave the PASTE_PROJECT placeholders untouched and the app simply
+   saves on this one device (localStorage) — still fully usable. */
+const FIREBASE_CONFIG = {
+  apiKey:      "AIzaSyAlHlI8xdGCtUoPcCPoXL_p974WvLuf-JQ",
+  authDomain:  "skeptiksz.firebaseapp.com",
+  databaseURL: "https://skeptiksz-default-rtdb.firebaseio.com",
+  projectId:   "skeptiksz",
+  appId:       "1:508653984700:web:07dfe1e2717c49765329b9"
+};
+const FB_ENABLED = (typeof firebase !== "undefined") &&
+                   FIREBASE_CONFIG.databaseURL.indexOf("PASTE_PROJECT") === -1;
+const FB = { on:false, db:null };
+
+/* ============ LOGIN / PROFILES ============
+   PINs are no longer hard-coded. Each person creates their own on first
+   login; it's stored (hashed) in the database and synced across devices.
+   Parents can reset the girls' PINs; a recovery code unlocks a forgotten
+   parent PIN. (With open database rules this is sibling-proof, not
+   hacker-proof — see notes.) */
+let profile = null;            // "I" | "V" | "parent"
+try{ profile = localStorage.getItem("houseProfile") || null; }catch(e){}
+function canEdit(who){ return profile==="parent" || profile===who; }
+function isParent(){ return profile==="parent"; }
+function profileName(p){ return p==="parent" ? "Parents" : p==="I" ? "Isabella" : p==="V" ? "Victoria" : ""; }
+
+/* auth state: { I:{h}, V:{h}, parent:{h}, recovery:{h} } */
+let authData = {};
+let authLoaded = !FB_ENABLED;   // local mode is ready immediately
+async function sha(str){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(str)));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function loadAuthLocal(){ try{ authData = JSON.parse(localStorage.getItem("houseAuth")||"{}")||{}; }catch(e){ authData={}; } }
+function saveAuthLocal(){ try{ localStorage.setItem("houseAuth", JSON.stringify(authData)); }catch(e){} }
+async function writeAuth(key, hash){
+  authData[key] = { h:hash, set:Date.now() };
+  if(FB.on){ try{ await FB.db.ref("auth/"+key).set({ h:hash, set: firebase.database.ServerValue.TIMESTAMP }); }catch(e){ console.warn("auth write failed", e); } }
+  else saveAuthLocal();
+}
+async function removeAuth(key){
+  delete authData[key];
+  if(FB.on){ try{ await FB.db.ref("auth/"+key).remove(); }catch(e){ console.warn("auth remove failed", e); } }
+  else saveAuthLocal();
+}
+
+let done = {};   // mirror of completion state: { "YYYY-MM-DD::choreIndex::who": {at, by} }
+let granted = {}; // mirror of granted rewards: { "rewardId::who": {at} }
+
+function loadLocal(){
+  try{ done = JSON.parse(localStorage.getItem("houseSched")||"{}")||{}; }catch(e){ done={}; }
+  try{ granted = JSON.parse(localStorage.getItem("houseGranted")||"{}")||{}; }catch(e){ granted={}; }
+}
+function saveLocal(){ try{ localStorage.setItem("houseSched", JSON.stringify(done)); }catch(e){} }
+function saveGranted(){ try{ localStorage.setItem("houseGranted", JSON.stringify(granted)); }catch(e){} }
+
+function setGranted(rid, who, on){
+  const k = rid+"::"+who;
+  if(on) granted[k] = { at: Date.now() }; else delete granted[k];
+  if(FB.on){
+    try{
+      const r = FB.db.ref("granted/"+rid+"/"+who);
+      if(on) r.set(firebase.database.ServerValue.TIMESTAMP); else r.remove();
+    }catch(e){ console.warn("grant write failed", e); }
+  } else { saveGranted(); }
+  renderRewards();
+}
+
+function setDone(date, i, who, isDone){
+  const k = keyFor(date, i, who);
+  if(isDone) done[k] = { at: Date.now(), by: who }; else delete done[k];   // optimistic
+  if(FB.on){
+    try{
+      const r = FB.db.ref("completions/"+iso(date)+"/"+i+"/"+who);
+      if(isDone) r.set({ at: firebase.database.ServerValue.TIMESTAMP, by: who });
+      else r.remove();
+    }catch(e){ console.warn("sync write failed", e); }
+  } else {
+    saveLocal();
+  }
+  renderAgenda();
+  renderHistory();
+  renderGame();
+}
+
+function setLive(state){
+  const el = document.getElementById("live"), txt = document.getElementById("liveText");
+  el.className = "live" + (state==="live" ? " on" : state==="error" ? " err" : state==="connecting" ? " off" : "");
+  txt.textContent = state==="live"      ? "Live — synced across devices"
+                  : state==="error"     ? "Sync error — check Firebase rules"
+                  : state==="connecting"? "Connecting…"
+                  :                        "Saved on this device only";
+}
+
+function startFirebase(){
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    FB.db = firebase.database();
+    FB.on = true;
+    setLive("connecting");
+    FB.db.ref("completions").on("value", snap=>{
+      const val = snap.val() || {};
+      done = {};
+      Object.keys(val).forEach(d =>
+        Object.keys(val[d]).forEach(i =>
+          Object.keys(val[d][i]).forEach(who => {
+            done[d+"::"+i+"::"+who] = val[d][i][who] || true;
+          })
+        )
+      );
+      renderAgenda();
+      renderHistory();
+      renderGame();
+    }, err=>{
+      console.error("Realtime DB read denied:", err);
+      setLive("error");
+    });
+    FB.db.ref("granted").on("value", snap=>{
+      const val = snap.val() || {};
+      granted = {};
+      Object.keys(val).forEach(rid =>
+        Object.keys(val[rid]).forEach(who => { granted[rid+"::"+who] = val[rid][who] || true; })
+      );
+      renderRewards();
+    }, err=>console.error("granted read denied:", err));
+    FB.db.ref("auth").on("value", snap=>{
+      authData = snap.val() || {};
+      authLoaded = true;
+    }, err=>{ console.error("auth read denied:", err); authLoaded = true; });
+    FB.db.ref(".info/connected").on("value", s=> setLive(s.val()===true ? "live" : "connecting"));
+  }catch(e){
+    console.warn("Firebase init failed — using this device only:", e);
+    FB.on = false; loadLocal(); setLive("local");
+  }
+}
+
+let filter = "all";
+let histDays = 7;
+let badgeWho = "I";
+const today = new Date(); today.setHours(0,0,0,0);
+let selected = new Date(today);
+let viewY = today.getFullYear(), viewM = today.getMonth();
+
+const iso = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const sameDay = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+
+/* Weekly rotation: this week = "Week A" (the original assignment).
+   Every following/previous week flips I<->V. "Both" never changes. */
+function weekIndex(d){
+  const sun = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  sun.setDate(sun.getDate()-sun.getDay());                 // back up to Sunday
+  return Math.floor(Date.UTC(sun.getFullYear(),sun.getMonth(),sun.getDate())/(7*24*3600*1000));
+}
+const BASE_WEEK = weekIndex(today);                          // the current week = Week A
+function weekParity(d){ return (((weekIndex(d)-BASE_WEEK)%2)+2)%2; } // 0 = A, 1 = B
+function effWho(base,parity){
+  if(base==="B"||base==="P"||base==="") return base;
+  return parity===0 ? base : (base==="I" ? "V" : "I");       // swap on Week B
+}
+function choresForDate(date){
+  const wd = date.getDay(), p = weekParity(date);
+  const out = [];
+  CHORES.forEach((c,i)=>{
+    const base = c.days[wd];
+    if(!base) return;
+    if(base === "B"){                       // shared task -> both girls get their own copy
+      out.push({...c, i, who:"I"});
+      out.push({...c, i, who:"V"});
+    } else {
+      out.push({...c, i, who:effWho(base, p)});
+    }
+  });
+  return out;
+}
+function visible(list){ return filter==="all" ? list : list.filter(c=>c.who===filter); }
+const keyFor = (date,i,who) => iso(date)+"::"+i+"::"+who;
+
+/* ============ AGENDA RENDER ============ */
+function renderAgenda(){
+  const wd = selected.getDay();
+  const isToday = sameDay(selected, today);
+  const p = weekParity(selected);
+  document.getElementById("agDay").innerHTML =
+    DAYNAMES[wd] + (isToday ? '<span class="today-badge">Today</span>' : '');
+  document.getElementById("agFull").innerHTML =
+    MONTHS[selected.getMonth()]+" "+selected.getDate()+", "+selected.getFullYear()+
+    ' <span class="wkpill '+(p?"b":"a")+'">Week '+(p?"B":"A")+'</span>';
+
+  const all = choresForDate(selected);
+  const list = visible(all);
+  const ul = document.getElementById("taskList");
+  ul.innerHTML = "";
+
+  if(!list.length){
+    ul.innerHTML = '<li class="empty">Nothing scheduled here'+(filter!=="all"?" for this filter":"")+'. Enjoy the break! 🌿</li>';
+  } else {
+    list.forEach(c=>{
+      const w = WHO[c.who];
+      const k = keyFor(selected, c.key, c.who);
+      const info = done[k];
+      const isDone = !!info;
+      let stampHtml = "";
+      if(isDone && info && info.at){
+        const t = new Date(info.at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+        stampHtml = `<span class="t-stamp">✓ ${t}</span>`;
+      }
+      const li = document.createElement("li");
+      li.className = "task"+(isDone?" done":"");
+      li.innerHTML = `
+        <input type="checkbox" class="check" ${isDone?"checked":""} aria-label="Mark done">
+        <div class="t-main">
+          <div class="t-name">${c.n}</div>
+          <div class="t-meta">
+            <span class="who ${w.cls}">${w.label}</span>
+            <span class="t-cat">${CATS[c.c].icon} ${CATS[c.c].name}</span>
+            ${stampHtml}
+          </div>
+          <div class="t-desc">${c.d}</div>
+        </div>
+        <span class="chev">▶</span>`;
+      const cb = li.querySelector(".check");
+      if(!canEdit(c.who)){ cb.disabled = true; li.classList.add("notmine"); }
+      cb.addEventListener("change",()=> setDone(selected, c.key, c.who, cb.checked));
+      li.querySelector(".t-main").addEventListener("click",()=>li.classList.toggle("open"));
+      li.querySelector(".chev").addEventListener("click",()=>li.classList.toggle("open"));
+      ul.appendChild(li);
+    });
+  }
+  updateRing();
+}
+
+function updateRing(){
+  const list = visible(choresForDate(selected));
+  const total = list.length;
+  const complete = list.filter(c=>done[keyFor(selected,c.key,c.who)]).length;
+  const pct = total ? Math.round(complete/total*100) : 0;
+  const circ = 2*Math.PI*26;
+  document.getElementById("ringFg").style.strokeDashoffset = circ - circ*pct/100;
+  document.getElementById("ringFg").setAttribute("stroke", pct===100 ? "#2f8f83" : "#c9a23f");
+  document.getElementById("ringPct").textContent = pct+"%";
+}
+
+/* ============ CALENDAR RENDER ============ */
+function renderWeekdays(){
+  const w = document.getElementById("weekdays");
+  ["S","M","T","W","T","F","S"].forEach(d=>{
+    const el=document.createElement("div"); el.className="wd"; el.textContent=d; w.appendChild(el);
+  });
+}
+function renderCalendar(){
+  document.getElementById("calTitle").textContent = MONTHS[viewM]+" "+viewY;
+  const grid = document.getElementById("calGrid");
+  grid.innerHTML = "";
+  const first = new Date(viewY, viewM, 1);
+  const start = first.getDay();
+  const daysInMonth = new Date(viewY, viewM+1, 0).getDate();
+  const prevDays = new Date(viewY, viewM, 0).getDate();
+
+  const cells = [];
+  for(let i=start-1;i>=0;i--) cells.push({day:prevDays-i, m:viewM-1, muted:true});
+  for(let d=1;d<=daysInMonth;d++) cells.push({day:d, m:viewM, muted:false});
+  while(cells.length % 7 !== 0) cells.push({day:cells.length-(start+daysInMonth)+1, m:viewM+1, muted:true});
+
+  cells.forEach(cell=>{
+    const date = new Date(viewY, cell.m, cell.day);
+    const btn = document.createElement("button");
+    btn.className = "cell"+(cell.muted?" muted":"");
+    if(sameDay(date,today)) btn.classList.add("today");
+    if(sameDay(date,selected)) btn.classList.add("sel");
+
+    const list = visible(choresForDate(date));
+    const hasI = list.some(c=>c.who==="I");
+    const hasV = list.some(c=>c.who==="V");
+    let dots = "";
+    if(hasI) dots += '<i class="isa"></i>';
+    if(hasV) dots += '<i class="vic"></i>';
+
+    btn.innerHTML = `<span class="num">${cell.day}</span><span class="dots">${dots}</span>`;
+    btn.addEventListener("click",()=>{
+      selected = date;
+      if(date.getMonth()!==viewM){ viewM=date.getMonth(); viewY=date.getFullYear(); }
+      renderCalendar(); renderAgenda(); renderFairness();
+      document.getElementById("agenda").scrollIntoView({behavior:"smooth",block:"start"});
+    });
+    grid.appendChild(btn);
+  });
+}
+
+/* ============ FAIRNESS ============ */
+function renderFairness(){
+  const p = weekParity(selected);
+  let I=0,V=0;
+  CHORES.forEach(c=>c.days.forEach(v=>{
+    const w=effWho(v,p);
+    if(w==="I") I++;
+    else if(w==="V") V++;
+    else if(w==="B"){ I++; V++; }   // shared task: both girls do it
+  }));
+  const max = Math.max(I,V);
+  document.getElementById("barI").style.width = (I/max*100)+"%";
+  document.getElementById("barV").style.width = (V/max*100)+"%";
+  document.getElementById("numI").textContent = I;
+  document.getElementById("numV").textContent = V;
+  const diff = Math.abs(I-V);
+  document.getElementById("fairNote").textContent =
+    `Showing Week ${p?"B":"A"}. Shared tasks count for both girls (they each do their own). The remaining tasks swap owners every week, so across the two-week rotation each of you does exactly the same total — within ${diff} task${diff===1?"":"s"} in any single week.`;
+}
+
+/* ============ RECENT HISTORY ============ */
+function renderHistory(){
+  const body = document.getElementById("histBody");
+  body.innerHTML = "";
+  for(let off=0; off<histDays; off++){
+    const d = new Date(today); d.setDate(d.getDate()-off);
+    const list = choresForDate(d);
+    const stat = who=>{
+      const mine = list.filter(c=>c.who===who);
+      const total = mine.length;
+      const comp = mine.filter(c=>done[keyFor(d,c.key,who)]).length;
+      return { total, pct: total ? Math.round(comp/total*100) : null };
+    };
+    const cell = (s,cls)=>{
+      if(s.pct===null) return `<div class="hist-p"><span class="hist-empty">no chores</span></div>`;
+      return `<div class="hist-p">
+        <div class="mini"><span class="${cls}" style="width:${s.pct}%"></span></div>
+        <span class="hist-pct${s.pct===100?' full':''}">${s.pct}%</span>
+      </div>`;
+    };
+    const I = stat("I"), V = stat("V");
+    const isToday = off===0;
+    const row = document.createElement("button");
+    row.className = "hist-row"+(isToday?" today":"");
+    row.innerHTML = `
+      <div class="hist-date">
+        <span class="hd-wd">${isToday ? "Today" : SHORT[d.getDay()]}</span>
+        <span class="hd-md">${d.getMonth()+1}/${d.getDate()}</span>
+      </div>
+      <div class="hist-people">${cell(I,'isa')}${cell(V,'vic')}</div>`;
+    row.addEventListener("click",()=>{
+      selected = new Date(d); viewY=d.getFullYear(); viewM=d.getMonth();
+      renderCalendar(); renderAgenda(); renderFairness();
+      document.getElementById("agenda").scrollIntoView({behavior:"smooth", block:"start"});
+    });
+    body.appendChild(row);
+  }
+}
+
+document.getElementById("histToggle").addEventListener("click", e=>{
+  const b = e.target.closest(".htbtn"); if(!b) return;
+  histDays = parseInt(b.dataset.days, 10);
+  document.querySelectorAll("#histToggle .htbtn").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  renderHistory();
+});
+
+/* ============ GAMIFICATION (streaks · rivalry · badges · rewards) ============ */
+const STREAK_MILESTONES = [3,7,14,30,60,100];
+
+/* Badges — earned from each girl's computed stats (s). Edit freely. */
+const BADGES = [
+  {id:"spark",   icon:"✨", name:"First Spark",    crit:"Finish 1 full day",        test:s=>s.perfectDays>=1},
+  {id:"fire7",   icon:"🔥", name:"On Fire",        crit:"7-day streak",             test:s=>s.longest>=7},
+  {id:"fire30",  icon:"🚀", name:"Unstoppable",    crit:"30-day streak",            test:s=>s.longest>=30},
+  {id:"fire100", icon:"🌟", name:"Legend",         crit:"100-day streak",           test:s=>s.longest>=100},
+  {id:"sweep10", icon:"🧹", name:"Clean Sweep",    crit:"10 perfect days",          test:s=>s.perfectDays>=10},
+  {id:"sweep50", icon:"💎", name:"Spotless",       crit:"50 perfect days",          test:s=>s.perfectDays>=50},
+  {id:"early",   icon:"🌅", name:"Early Bird",     crit:"Done before noon ×5",      test:s=>s.earlyDays>=5},
+  {id:"kitchen", icon:"🍽️", name:"Kitchen Boss",   crit:"25 kitchen chores",        test:s=>(s.cat.kitchen||0)>=25},
+  {id:"pets",    icon:"🐾", name:"Pack Leader",    crit:"40 pet chores",            test:s=>(s.cat.pets||0)>=40},
+  {id:"laundry", icon:"🧺", name:"Laundry Legend", crit:"40 laundry chores",        test:s=>(s.cat.laundry||0)>=40},
+  {id:"cup1",    icon:"🏆", name:"Cup Winner",     crit:"Win a weekly duel",        test:s=>s.cups>=1},
+  {id:"champ",   icon:"👑", name:"Champion",       crit:"Win 4 weekly duels",       test:s=>s.cups>=4}
+];
+
+/* Real-world rewards — PARENTS: edit these to whatever you actually offer.
+   "test" decides when each girl unlocks it; tap "Mark given" when you hand it out. */
+const REWARDS = [
+  {id:"r7",  icon:"🎬", name:"Movie pick",          goal:"Reach a 7-day streak",   test:s=>s.streak>=7},
+  {id:"r14", icon:"🍕", name:"Choose Friday dinner", goal:"Reach a 14-day streak",  test:s=>s.streak>=14},
+  {id:"r30", icon:"💵", name:"Allowance bonus",      goal:"Reach a 30-day streak",  test:s=>s.streak>=30},
+  {id:"cup", icon:"📱", name:"Extra screen time",    goal:"Win a weekly duel",      test:s=>s.cups>=1}
+];
+
+function tier(s){ return s>=100?5 : s>=30?4 : s>=14?3 : s>=7?2 : s>=1?1 : 0; }
+
+/* One pass over recent history computes everything for both girls. */
+function computeAll(){
+  const mk = ()=>({streak:0,longest:0,perfectDays:0,earlyDays:0,totalDone:0,cups:0,weekPts:0,cat:{}});
+  const out = { I:mk(), V:mk() };
+  const weekDays   = { I:{}, V:{} };  // weekIndex -> # fully-completed chore days
+  const weekChores = { I:{}, V:{} };  // weekIndex -> # chores completed (duel meter)
+  const curWi = weekIndex(today);
+
+  ["I","V"].forEach(who=>{
+    const days = [];                  // newest -> oldest, chore days only
+    for(let off=0; off<180; off++){
+      const d = new Date(today); d.setDate(d.getDate()-off);
+      const mine = choresForDate(d).filter(c=>c.who===who);
+      if(mine.length===0) continue;
+      let allDone = true, allEarly = true, doneCount = 0;
+      mine.forEach(c=>{
+        const info = done[keyFor(d, c.key, who)];
+        if(info){
+          doneCount++; out[who].totalDone++;
+          out[who].cat[c.c] = (out[who].cat[c.c]||0) + 1;
+          if(!(info.at && new Date(info.at).getHours() < 12)) allEarly = false;
+        } else { allDone = false; allEarly = false; }
+      });
+      const wi = weekIndex(d);
+      weekChores[who][wi] = (weekChores[who][wi]||0) + doneCount;
+      if(allDone){
+        out[who].perfectDays++;
+        if(allEarly) out[who].earlyDays++;
+        weekDays[who][wi] = (weekDays[who][wi]||0) + 1;
+      }
+      days.push({ fully: allDone, pending: (off===0 && !allDone) });
+    }
+    // current streak: today (if not done) is pending and doesn't break it
+    let i = (days[0] && days[0].pending) ? 1 : 0, cur = 0;
+    for(; i<days.length; i++){ if(days[i].fully) cur++; else break; }
+    out[who].streak = cur;
+    // longest run anywhere in window
+    let lo = 0, run = 0;
+    days.forEach(dd=>{ if(dd.pending) return; if(dd.fully){ run++; if(run>lo) lo=run; } else run=0; });
+    out[who].longest = lo;
+    out[who].weekPts = weekChores[who][curWi] || 0;
+  });
+
+  // cups: each finished past week, more completed chore-days wins
+  const weeks = new Set([...Object.keys(weekDays.I), ...Object.keys(weekDays.V)].map(Number));
+  weeks.forEach(wi=>{
+    if(wi >= curWi) return;
+    const a = weekDays.I[wi]||0, b = weekDays.V[wi]||0;
+    if(a>b) out.I.cups++; else if(b>a) out.V.cups++;
+  });
+  return out;
+}
+
+let STATS = { I:{streak:0,longest:0,cups:0,weekPts:0,perfectDays:0,earlyDays:0,cat:{}},
+              V:{streak:0,longest:0,cups:0,weekPts:0,perfectDays:0,earlyDays:0,cat:{}} };
+let lastStreak = { I:null, V:null };
+let gameReady = false;
+
+function renderGame(){
+  STATS = computeAll();
+  renderShowdown();
+  renderBadges();
+  renderRewards();
+  ["I","V"].forEach(who=>{
+    const s = STATS[who].streak;
+    if(gameReady && lastStreak[who]!==null && s>lastStreak[who]){
+      const hit = STREAK_MILESTONES.filter(m=>m>lastStreak[who] && m<=s);
+      if(hit.length) celebrate(who, Math.max(...hit));
+    }
+    lastStreak[who] = s;
+  });
+  gameReady = true;
+}
+
+function renderShowdown(){
+  const I = STATS.I, V = STATS.V;
+  const lead = I.streak>V.streak ? "I" : V.streak>I.streak ? "V" : null;
+  const block = (who,s)=>{
+    const name = who==="I"?"Isabella":"Victoria", cls = who==="I"?"isa":"vic";
+    const crown = lead===who ? '<span class="crown">👑</span>' : '';
+    return `<div class="sd-girl">
+      ${crown}
+      <div class="flame t${tier(s.streak)}">🔥</div>
+      <div class="sd-num">${s.streak}</div>
+      <div class="sd-lbl">day streak</div>
+      <div class="sd-sub"><span class="dot ${cls}"></span>${name}</div>
+      <div class="sd-cups">🏆 ${s.cups} cups · best ${s.longest}</div>
+    </div>`;
+  };
+  document.getElementById("sdDuel").innerHTML = block("I",I)+'<div class="sd-vs">vs</div>'+block("V",V);
+  const tot = I.weekPts + V.weekPts;
+  const ip = tot ? Math.round(I.weekPts/tot*100) : 50;
+  document.getElementById("tugI").style.width = ip+"%";
+  document.getElementById("tugV").style.width = (100-ip)+"%";
+  document.getElementById("sdWi").textContent = "Isabella · "+I.weekPts;
+  document.getElementById("sdWv").textContent = V.weekPts+" · Victoria";
+  document.getElementById("sdWeekLead").textContent =
+    I.weekPts>V.weekPts ? "Isabella leads" : V.weekPts>I.weekPts ? "Victoria leads" : "All square";
+}
+
+function renderBadges(){
+  const s = STATS[badgeWho], cls = badgeWho==="I"?"isa":"vic";
+  const earnedCount = BADGES.filter(b=>b.test(s)).length;
+  document.getElementById("badgeCount").textContent = earnedCount+" / "+BADGES.length;
+  document.getElementById("badgeGrid").innerHTML = BADGES.map(b=>{
+    const earned = b.test(s);
+    return `<div class="badge ${earned?'earned '+cls:'locked'}">
+      <div class="b-ico">${b.icon}</div>
+      <div class="b-name">${b.name}</div>
+      <div class="b-crit">${earned?'Earned ✓':b.crit}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderRewards(){
+  const wrap = document.getElementById("rewardList");
+  wrap.innerHTML = REWARDS.map(r=>`
+    <div class="rw">
+      <div class="rw-top">
+        <span class="rw-ico">${r.icon}</span>
+        <div><div class="rw-name">${r.name}</div><div class="rw-goal">${r.goal}</div></div>
+      </div>
+      <div class="rw-girls">
+        ${["I","V"].map(who=>{
+          const s = STATS[who], cls = who==="I"?"isa":"vic", name = who==="I"?"Isabella":"Victoria";
+          const unlocked = r.test(s), given = !!granted[r.id+"::"+who];
+          if(!unlocked) return `<div class="rw-girl locked"><span class="dot ${cls}"></span>${name} · locked</div>`;
+          if(isParent()){
+            return `<button class="rw-girl ${cls} ${given?'given':'unlocked'}" data-r="${r.id}" data-who="${who}">
+              <span class="dot ${cls}"></span>${name} · ${given?'✓ given':'Mark given'}</button>`;
+          }
+          return `<div class="rw-girl ${cls} ${given?'given':'unlocked'}">
+            <span class="dot ${cls}"></span>${name} · ${given?'✓ given':'unlocked'}</div>`;
+        }).join("")}
+      </div>
+    </div>`).join("");
+  wrap.querySelectorAll("button.rw-girl").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const k = btn.dataset.r+"::"+btn.dataset.who;
+      setGranted(btn.dataset.r, btn.dataset.who, !granted[k]);
+    });
+  });
+}
+
+document.getElementById("badgeToggle").addEventListener("click", e=>{
+  const b = e.target.closest(".btgl"); if(!b) return;
+  badgeWho = b.dataset.who;
+  document.querySelectorAll("#badgeToggle .btgl").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  renderBadges();
+});
+
+/* ---- celebration ---- */
+function celebrate(who, milestone){
+  const name = who==="I"?"Isabella":"Victoria";
+  showConfetti();
+  const t = document.getElementById("toast");
+  t.innerHTML = `🎉 <b>${name}</b> hit a <b>${milestone}-day</b> streak!`;
+  t.classList.add("show");
+  clearTimeout(window.__toastT);
+  window.__toastT = setTimeout(()=>t.classList.remove("show"), 3400);
+}
+function showConfetti(){
+  const c = document.getElementById("confetti");
+  const colors = ["#d96440","#2f8f83","#c9a23f","#e8b04b","#9a6c2f","#3aa697"];
+  for(let n=0; n<54; n++){
+    const p = document.createElement("i");
+    p.style.left = Math.random()*100 + "%";
+    p.style.background = colors[n % colors.length];
+    p.style.animationDelay = (Math.random()*0.5) + "s";
+    p.style.animationDuration = (1.8 + Math.random()*1.2) + "s";
+    c.appendChild(p);
+    setTimeout(()=>p.remove(), 3200);
+  }
+}
+
+/* ============ BROWSE ============ */
+function renderBrowse(){
+  const wrap = document.getElementById("browse");
+  Object.keys(CATS).forEach(cat=>{
+    const items = CHORES.filter(c=>c.c===cat);
+    const acc = document.createElement("div");
+    acc.className = "acc";
+    acc.innerHTML = `
+      <button class="acc-h">
+        <span class="acc-ico">${CATS[cat].icon}</span>
+        <span class="acc-name">${CATS[cat].name}</span>
+        <span class="acc-count">${items.length}</span>
+        <span class="arr">▶</span>
+      </button>
+      <div class="acc-body">
+        ${items.map(c=>`<div class="acc-item"><div class="n">${c.n}</div><div class="d">${c.d}</div></div>`).join("")}
+      </div>`;
+    acc.querySelector(".acc-h").addEventListener("click",()=>acc.classList.toggle("open"));
+    wrap.appendChild(acc);
+  });
+}
+
+/* ============ FILTERS ============ */
+document.getElementById("filters").addEventListener("click",e=>{
+  const btn = e.target.closest(".chip"); if(!btn) return;
+  filter = btn.dataset.filter;
+  document.querySelectorAll("#filters .chip").forEach(c=>c.setAttribute("aria-pressed", c===btn));
+  renderAgenda(); renderCalendar();
+});
+
+/* ============ NAV ============ */
+document.getElementById("prev").addEventListener("click",()=>{ viewM--; if(viewM<0){viewM=11;viewY--;} renderCalendar(); });
+document.getElementById("next").addEventListener("click",()=>{ viewM++; if(viewM>11){viewM=0;viewY++;} renderCalendar(); });
+document.getElementById("today").addEventListener("click",()=>{
+  selected=new Date(today); viewY=today.getFullYear(); viewM=today.getMonth();
+  renderCalendar(); renderAgenda(); renderFairness();
+});
+document.getElementById("reset").addEventListener("click",()=>{
+  if(!isParent()) return;
+  if(!confirm("Clear ALL check-offs for everyone? This can't be undone.")) return;
+  done = {};
+  if(FB.on){ try{ FB.db.ref("completions").remove(); }catch(e){} }
+  else saveLocal();
+  renderAgenda();
+  renderHistory();
+  renderGame();
+});
+
+/* ============ COMPLETION TEXT ============ */
+const sheet = document.getElementById("sheet");
+let builtMsg = "";
+
+function openSheet(){
+  sheet.classList.add("show"); sheet.setAttribute("aria-hidden","false");
+  if(profile==="I" || profile==="V"){ buildAndShow(profile); return; }  // girl: straight to her own
+  document.getElementById("sheetStep1").hidden = false;
+  document.getElementById("sheetStep2").hidden = true;
+}
+function closeSheet(){ sheet.classList.remove("show"); sheet.setAttribute("aria-hidden","true"); }
+
+document.getElementById("doneBtn").addEventListener("click", openSheet);
+document.getElementById("sheetClose").addEventListener("click", closeSheet);
+document.getElementById("sheetBack").addEventListener("click", openSheet);
+sheet.addEventListener("click", e=>{ if(e.target===sheet) closeSheet(); });
+document.querySelectorAll(".name-btn").forEach(b=>{
+  b.addEventListener("click", ()=>buildAndShow(b.dataset.who));
+});
+
+function buildAndShow(who){
+  const name = who==="I" ? "Isabella" : "Victoria";
+  const mine = choresForDate(selected).filter(c => c.who===who);
+  const doneList = mine.filter(c => done[keyFor(selected, c.key, who)]);
+
+  document.getElementById("sheetStep1").hidden = true;
+  document.getElementById("sheetStep2").hidden = false;
+  document.getElementById("sheetBack").style.display = isParent() ? "" : "none";
+  document.getElementById("sheetName").textContent = name + "'s update";
+
+  const msgBox = document.getElementById("sheetMsg");
+  const actions = document.querySelector("#sheetStep2 .sheet-actions");
+
+  if(doneList.length === 0){
+    document.getElementById("sheetSummary").textContent = "Nothing checked off for this day yet.";
+    msgBox.className = "sheet-none";
+    msgBox.textContent = "Check off the chores you've completed first, then come back here to send your update.";
+    actions.style.display = "none";
+    return;
+  }
+  actions.style.display = "flex";
+  msgBox.className = "sheet-msg";
+  document.getElementById("sheetSummary").textContent =
+    `Completed ${doneList.length} of ${mine.length}. The recipient is left blank so you can pick Mom or Dad.`;
+
+  const dateStr = DAYNAMES[selected.getDay()]+", "+MONTHS[selected.getMonth()]+" "+selected.getDate()+", "+selected.getFullYear();
+  const timeStr = new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  const allDone = doneList.length === mine.length;
+  const lines = doneList.map(c=>"• "+c.n).join("\n");
+
+  builtMsg =
+    `Hi Mom & Dad — it's ${name}!\n\n` +
+    (allDone
+      ? `All my chores for ${dateStr} are done as of ${timeStr}.`
+      : `Here's my chore update for ${dateStr} as of ${timeStr}.`) +
+    `\n\nCompleted (${doneList.length} of ${mine.length}):\n${lines}\n\nLove, ${name}`;
+  msgBox.textContent = builtMsg;
+}
+
+document.getElementById("openSms").addEventListener("click", ()=>{
+  window.location.href = "sms:?&body=" + encodeURIComponent(builtMsg);
+});
+document.getElementById("copyMsg").addEventListener("click", function(){
+  const btn = this;
+  const ok = ()=>{ btn.textContent="Copied!"; setTimeout(()=>btn.textContent="Copy text",1600); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(builtMsg).then(ok).catch(()=>fallbackCopy(builtMsg, ok));
+  } else { fallbackCopy(builtMsg, ok); }
+});
+function fallbackCopy(text, cb){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand("copy"); cb && cb(); }catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* ============ LOGIN GATE ============ */
+let pendingWho = null, gateMode = "login";
+const gateEl = document.getElementById("gate");
+const G = id => document.getElementById(id);
+
+function showGate(){
+  profile = null;
+  try{ localStorage.removeItem("houseProfile"); }catch(e){}
+  pendingWho = null;
+  G("gateStep1").hidden = false;
+  G("gateStep2").hidden = true;
+  G("gatePin").value = ""; G("gatePin2").value = ""; G("gateErr").textContent = "";
+  gateEl.hidden = false;
+}
+function hideGate(){ gateEl.hidden = true; }
+
+function chooseProfile(who){
+  if(!authLoaded){
+    G("gateStep1").hidden = true; G("gateStep2").hidden = false;
+    G("gatePrompt").textContent = "Connecting…";
+    G("gateErr").textContent = "Loading — tap Back and try again in a moment.";
+    G("gatePin2").hidden = true; G("gateForgot").hidden = true;
+    return;
+  }
+  pendingWho = who;
+  gateMode = (authData[who] && authData[who].h) ? "login" : "setup";
+  renderGateStep2();
+}
+function renderGateStep2(){
+  G("gateStep1").hidden = true; G("gateStep2").hidden = false;
+  const name = profileName(pendingWho);
+  const pin1 = G("gatePin"), pin2 = G("gatePin2"), go = G("gateGo"), forgot = G("gateForgot");
+  pin1.value = ""; pin2.value = ""; G("gateErr").textContent = "";
+  if(gateMode === "login"){
+    G("gatePrompt").textContent = "Enter " + name + "’s PIN";
+    pin2.hidden = true; go.textContent = "Enter";
+    forgot.hidden = false; forgot.textContent = pendingWho==="parent" ? "Forgot parent PIN?" : "Forgot PIN?";
+  } else { // setup (first login or change)
+    G("gatePrompt").textContent = "Set " + name + "’s PIN (4–6 digits) — enter it twice";
+    pin2.hidden = false; go.textContent = "Save PIN"; forgot.hidden = true;
+  }
+  setTimeout(()=>pin1.focus(), 60);
+}
+
+document.querySelectorAll(".gate-person").forEach(b=>{
+  b.addEventListener("click",()=>chooseProfile(b.dataset.who));
+});
+G("gateBack").addEventListener("click", showGate);
+G("gateForgot").addEventListener("click",()=>{
+  G("gateErr").textContent = pendingWho==="parent"
+    ? "To reset a forgotten parent PIN, delete the “auth/parent” entry in your Firebase console, then reload."
+    : "Ask a parent to reset your PIN from their login.";
+});
+
+async function gateGo(){
+  const err = G("gateErr"); err.textContent = "";
+  const v1 = G("gatePin").value.trim();
+  if(gateMode === "login"){
+    const h = await sha(v1);
+    if(authData[pendingWho] && h === authData[pendingWho].h){ finishLogin(pendingWho); }
+    else { err.textContent = "Wrong PIN — try again"; G("gatePin").value = ""; G("gatePin").focus(); }
+  } else { // setup
+    const v2 = G("gatePin2").value.trim();
+    if(!/^\d{4,6}$/.test(v1)){ err.textContent = "PIN must be 4–6 digits"; return; }
+    if(v1 !== v2){ err.textContent = "PINs don't match — try again"; G("gatePin2").value = ""; G("gatePin2").focus(); return; }
+    await writeAuth(pendingWho, await sha(v1));
+    finishLogin(pendingWho);
+  }
+}
+G("gateGo").addEventListener("click", gateGo);
+G("gatePin").addEventListener("keydown", e=>{ if(e.key==="Enter") gateGo(); });
+G("gatePin2").addEventListener("keydown", e=>{ if(e.key==="Enter") gateGo(); });
+G("switchBtn").addEventListener("click", showGate);
+
+/* change your own PIN without logging out */
+G("changePinBtn").addEventListener("click",()=>{
+  if(!profile) return;
+  pendingWho = profile; gateMode = "setup";
+  gateEl.hidden = false; renderGateStep2();
+});
+
+function finishLogin(p){
+  profile = p;
+  try{ localStorage.setItem("houseProfile", p); }catch(e){}
+  hideGate();
+  applyProfileUI();
+}
+function applyProfileUI(){
+  G("userLabel").textContent = profileName(profile);
+  G("userDot").style.background = profile==="I" ? "var(--isa)" : profile==="V" ? "var(--vic)" : "var(--par)";
+  G("reset").style.display = isParent() ? "" : "none";
+  G("pinAdmin").hidden = !isParent();
+  filter = profile==="I" ? "I" : profile==="V" ? "V" : profile==="parent" ? "P" : "all";
+  document.querySelectorAll("#filters .chip").forEach(c=>c.setAttribute("aria-pressed", c.dataset.filter===filter));
+  renderAgenda(); renderCalendar(); renderFairness(); renderHistory(); renderGame();
+}
+
+/* parents set / clear the girls' PINs */
+document.querySelectorAll("#pinAdmin .pa-row").forEach(row=>{
+  const who = row.dataset.who, input = row.querySelector(".pa-pin");
+  row.querySelector(".pa-save").addEventListener("click", async ()=>{
+    if(!isParent()) return;
+    const v = input.value.trim();
+    if(!/^\d{4,6}$/.test(v)){ G("paMsg").textContent = "PIN must be 4–6 digits."; return; }
+    await writeAuth(who, await sha(v));
+    input.value = "";
+    G("paMsg").textContent = profileName(who) + "’s PIN updated.";
+  });
+  row.querySelector(".pa-clear").addEventListener("click", async ()=>{
+    if(!isParent()) return;
+    if(!confirm("Clear " + profileName(who) + "’s PIN? She'll create a new one at her next login.")) return;
+    await removeAuth(who);
+    G("paMsg").textContent = profileName(who) + "’s PIN cleared — she'll set a new one next login.";
+  });
+});
+
+/* ============ INIT ============ */
+renderWeekdays();
+renderBrowse();
+if(FB_ENABLED){ startFirebase(); }
+else { loadLocal(); loadAuthLocal(); setLive("local"); }
+renderCalendar();
+renderAgenda();
+renderFairness();
+renderHistory();
+renderGame();
+if(profile){ applyProfileUI(); }
+else { showGate(); }
+</script>
+</body>
+</html>

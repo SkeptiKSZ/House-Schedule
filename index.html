@@ -116,6 +116,15 @@
     border-top:1px solid var(--line);position:relative;
   }
   .task:first-child{border-top:none;}
+  .task.frozen{background:repeating-linear-gradient(135deg,transparent,transparent 9px,rgba(120,110,90,.045) 9px,rgba(120,110,90,.045) 18px);}
+  .task.frozen .check{opacity:.55;}
+  .hist-banner{
+    display:flex;align-items:center;gap:8px;margin:0 0 2px;padding:8px 18px;
+    background:rgba(120,110,90,.09);border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    font-size:12.5px;color:var(--muted);font-weight:600;
+  }
+  .hist-banner svg{flex:none;}
+  .hist-banner:empty{display:none;}
   .check{
     appearance:none;width:24px;height:24px;border-radius:8px;border:2px solid var(--line);
     background:var(--card);flex:none;margin-top:1px;cursor:pointer;display:grid;place-items:center;
@@ -464,6 +473,7 @@
       </div>
     </div>
     <div class="live" id="live"><span class="live-dot"></span><span id="liveText">Saved on this device only</span></div>
+    <div class="hist-banner" id="histBanner"></div>
     <ul class="tasks" id="taskList"></ul>
     <div class="done-bar"><button id="doneBtn" class="done-btn">📲 I'm finished — text the parents</button></div>
   </section>
@@ -648,49 +658,46 @@ const CATS = {
 };
 
 const CHORES = [
-  {c:"personal", n:"Brush and floss teeth", d:"Brush and floss teeth - take are of those pearly whites!", days:["B","B","B","B","B","B","B"]},
-  {c:"personal", n:"Shower (body)", d:"Quick daily shower to stay fresh — body wash, rinse, done.", days:["","B","B","","B","B","B"]},
-  {c:"personal", n:"Shower (body & hair)", d:"Full shower including washing and conditioning your hair.", days:["B","","","B","","",""]},
-  {c:"personal", n:"Clean bedroom", d:"Make the bed, clear the floor, and put away anything left out.", days:["","","","B","","","B"]},
+  {c:"personal", n:"Clean bedroom", d:"Make the bed, clear the floor, and put away anything left out.", key:"PER-010", days:["","","","B","","","B"]},
 
-  {c:"kitchen", n:"Wash kitchen dishes", d:"Hand-wash everything in the sink, dry it, and put it away.", days:["V","I","V","I","V","V","I"]},
-  {c:"kitchen", n:"Collect dishes from all rooms", d:"Walk the house and bring every cup and plate to the kitchen sink.", days:["V","I","V","I","V","I","B"]},
-  {c:"kitchen", n:"Empty the dishwasher", d:"Unload clean dishes and return each item to its spot.", days:["V","I","V","I","V","I","I"]},
+  {c:"kitchen", n:"Wash kitchen dishes", d:"Hand-wash everything in the sink, dry it, and put it away.", key:"KIT-010", days:["V","I","V","I","V","V","I"]},
+  {c:"kitchen", n:"Collect dishes from all rooms", d:"Walk the house and bring every cup and plate to the kitchen sink.", key:"KIT-020", days:["V","I","V","I","V","I","B"]},
+  {c:"kitchen", n:"Wipe kitchen counters", d:"Clean and wipe kitchen counters.", key:"KIT-030", days:["V","I","V","I","V","V","I"]},
+  {c:"kitchen", n:"Empty the dishwasher", d:"Unload clean dishes and return each item to its spot.", key:"KIT-040", days:["V","I","V","I","V","I","I"]},
 
-  {c:"restrooms", n:"Clean upstairs restroom", d:"Wipe the sink and counter, scrub the toilet, clean the mirror and floor.", days:["V","","","","I","",""]},
-  {c:"restrooms", n:"Clean downstairs guest restroom", d:"Wipe the sink and toilet, refill supplies, quick floor clean.", days:["","","","V","","","I"]},
+  {c:"restrooms", n:"Clean upstairs restroom", d:"Wipe the sink and counter, scrub the toilet, clean the mirror and floor.", key:"RST-010", days:["V","","","","I","",""]},
+  {c:"restrooms", n:"Clean downstairs guest restroom", d:"Wipe the sink and toilet, refill supplies, quick floor clean.", key:"RST-020", days:["","","","V","","","I"]},
 
-  {c:"upstairs", n:"Clean office", d:"Dust surfaces, tidy the desk, and vacuum the office floor.", days:["","","","","","","B"]},
-  {c:"upstairs", n:"Vacuum all of upstairs", d:"Vacuum every upstairs room and the hallway.", days:["","","","","","","I"]},
-  {c:"upstairs", n:"Clean and organize game room", d:"Pick up clutter, organize and clean (wipe down) game room.", days:["","I","","","","",""]},
+  {c:"upstairs", n:"Clean office", d:"Dust surfaces, tidy the desk, and vacuum the office floor.", key:"UPS-010", days:["","","","","","","B"]},
+  {c:"upstairs", n:"Vacuum all of upstairs", d:"Vacuum every upstairs room and the hallway.", key:"UPS-020", days:["","","","","","","I"]},
+  {c:"upstairs", n:"Clean and organize game room", d:"Pick up clutter, organize and clean (wipe down) game room.", key:"UPS-030", days:["","I","","","","",""]},
 
-  {c:"living", n:"Sweep laundry room", d:"Sweep up lint, dust, and debris from the laundry room floor.", days:["V","I","V","I","V","I","V"]},
-  {c:"living", n:"Clean dining tables", d:"Wipe down all dining tables after meals.", days:["I","V","I","V","I","V","I"]},
-  {c:"living", n:"Clean french door windows", d:"Clean the living room french door glass inside and out — streak-free.", days:["","","","","","","V"]},
-  {c:"living", n:"Vacuum and mop the living room floor", d:"Vacuum and mop the living room rug and floor.", days:["","","","","","","I"]},
-  {c:"living", n:"Vacuum stairs", d:"Vacuum each step and the landing.", days:["","","","","","","V"]},
+  {c:"living", n:"Sweep laundry room", d:"Sweep up lint, dust, and debris from the laundry room floor.", key:"LVG-010", days:["V","I","V","I","V","I","V"]},
+  {c:"living", n:"Clean dining tables", d:"Wipe down all dining tables after meals.", key:"LVG-020", days:["I","V","I","V","I","V","I"]},
+  {c:"living", n:"Clean french door windows", d:"Clean the living room french door glass inside and out — streak-free.", key:"LVG-030", days:["","","","","","","V"]},
+  {c:"living", n:"Pick up and organize downstairs", d:"Pick up living room, pool table, dining room and surrounding 1st floor areas.", key:"LVG-040", days:["","","","","","","V"]},
+  {c:"living", n:"Mirrors (Downstairs)", d:"Clean and wipe downstairs mirrors.", key:"LVG-050", days:["","","","V","","",""]},
+  {c:"living", n:"Vacuum and mop the living room floor", d:"Vacuum and mop the living room rug and floor.", key:"LVG-060", days:["","","","","","","I"]},
+  {c:"living", n:"Vacuum stairs", d:"Vacuum each step and the landing.", key:"LVG-070", days:["","","","","","","V"]},
 
-  {c:"laundry", n:"Wash and Dry family clothes", d:"Gather clothes from drity hampers and wash/dry.", days:["I","","","","","",""]},
-  {c:"laundry", n:"Fold underwear & socks", d:"Match and fold socks and underwear for the whole house.", days:["B","","","","","",""]},
-  {c:"laundry", n:"Bring laundry downstairs", d:"Carry the dirty laundry baskets down to the laundry room and separate by colors into different hampers (prepare to wash).", days:["B","","","","","",""]},
-  {c:"laundry", n:"Put away clean clothes", d:"Put your clean, folded clothes where they belong.", days:["B","B","B","B","B","B","B"]},
+  {c:"laundry", n:"Wash and Dry family clothes", d:"Gather clothes from drity hampers and wash/dry.", key:"LDY-010", days:["I","","","","","",""]},
+  {c:"laundry", n:"Fold underwear & socks", d:"Match and fold socks and underwear for the whole house.", key:"LDY-020", days:["B","","","","","",""]},
+  {c:"laundry", n:"Bring laundry downstairs", d:"Carry the dirty laundry baskets down to the laundry room and separate by colors into different hampers (prepare to wash).", key:"LDY-030", days:["B","","","","","",""]},
+  {c:"laundry", n:"Put away clean clothes", d:"Put your clean, folded clothes where they belong.", key:"LDY-040", days:["B","B","B","B","B","B","B"]},
 
-  {c:"trash", n:"Collect trash & place in outdoor trash bin", d:"Empty the bins from rooms and restrooms, bag it, and place in outdoor trash bin.", days:["","","I","","","V",""]},
+  {c:"trash", n:"Collect trash & place in outdoor trash bin", d:"Empty the bins from rooms and restrooms, bag it, and place in outdoor trash bin.", key:"TRS-010", days:["","","I","","","V",""]},
 
-  {c:"pets", n:"Make dog food", d:"Prepare and cook food for Peter. Store this food in the freezer in a plastic container.", days:["V","","","","","",""]},
-  {c:"pets", n:"Wash dog dishes", d:"Clean and refill the dog food and water bowls.", days:["I","V","I","V","I","V","I"]},
-  {c:"pets", n:"Give Peter a bath", d:"Bathe Peter, towel dry, and brush him out.", days:["","","","","","","I"]},
-  {c:"pets", n:"Brush Peter's hair", d:"Brush both dogs to cut down on shedding and matting.", days:["","","I","","","",""]},
-  {c:"pets", n:"Feed Peter (morning)", d:"Morning feeding for both dogs.", days:["I","V","I","V","I","V","I"]},
-  {c:"pets", n:"Feed Peter (evening)", d:"Evening feeding for both dogs.", days:["I","V","I","V","I","V","I"]},
-  {c:"pets", n:"Pick up Peter's toys in the backyard", d:"Pick up Peter's toys in the backyard.", days:["","","","","","","V"]},
+  {c:"pets", n:"Make dog food", d:"Prepare and cook food for Peter. Store this food in the freezer in a plastic container.", key:"PET-010", days:["V","","","","","",""]},
+  {c:"pets", n:"Wash dog dishes", d:"Clean and refill the dog food and water bowls.", key:"PET-020", days:["I","V","I","V","I","V","I"]},
+  {c:"pets", n:"Give Peter a bath", d:"Bathe Peter, towel dry, and brush him out.", key:"PET-030", days:["","","","","","","I"]},
+  {c:"pets", n:"Brush Peter's hair", d:"Brush both dogs to cut down on shedding and matting.", key:"PET-040", days:["","","I","","","",""]},
+  {c:"pets", n:"Feed Peter (morning)", d:"Morning feeding for both dogs.", key:"PET-050", days:["I","V","I","V","I","V","I"]},
+  {c:"pets", n:"Feed Peter (evening)", d:"Evening feeding for both dogs.", key:"PET-060", days:["I","V","I","V","I","V","I"]},
+  {c:"pets", n:"Pick up Peter's toys in the backyard", d:"Pick up Peter's toys in the backyard.", key:"PET-070", days:["","","","","","","V"]},
 
-  {c:"outdoor", n:"Water plants", d:"Water front and backyard plants.", days:["P","","","","P","",""]},
-  {c:"outdoor", n:"Organize backyard table and sitting area", d:"Clean up and declutter covered area and wipe down table", days:["","","","","","P",""]}
+  {c:"outdoor", n:"Water plants", d:"Water front and backyard plants.", key:"OUT-010", days:["P","","","","P","",""]},
+  {c:"outdoor", n:"Organize backyard table and sitting area", d:"Clean up and declutter covered area and wipe down table", key:"OUT-020", days:["","","","","","P",""]}
 ];
-
-function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60); }
-(function(){ const seen={}; CHORES.forEach(c=>{ let base=slug(c.c+"-"+c.n)||"chore", k=base, n=1; while(seen[k]){ k=base+"-"+(++n); } seen[k]=1; c.key=k; }); })();
 
 const WHO = {I:{label:"Isabella",cls:"isa"}, V:{label:"Victoria",cls:"vic"}, B:{label:"Both",cls:"both"}, P:{label:"Parents",cls:"par"}};
 const DAYNAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -799,6 +806,72 @@ function startFirebase(){
     FB.db = firebase.database();
     FB.on = true;
     setLive("connecting");
+
+    /* ---- ONE-TIME MIGRATION: slug keys → static ID keys ----
+       Runs once per database (guarded by a "migrated" flag in Firebase).
+       Maps every old slug-based completion key to its permanent static ID.
+       Old records that no longer match any current chore are silently dropped. */
+    const SLUG_TO_ID = {
+      "kitchen-collect-dishes-from-all-rooms":"KIT-020",
+      "kitchen-empty-the-dishwasher":"KIT-040",
+      "kitchen-wash-kitchen-dishes":"KIT-010",
+      "kitchen-wipe-kitchen-counters":"KIT-030",
+      "laundry-bring-laundry-downstairs":"LDY-030",
+      "laundry-fold-underwear-socks":"LDY-020",
+      "laundry-put-away-clean-clothes":"LDY-040",
+      "laundry-wash-and-dry-family-clothes":"LDY-010",
+      "living-clean-dining-tables":"LVG-020",
+      "living-clean-french-door-windows":"LVG-030",
+      "living-mirrors-downstairs":"LVG-050",
+      "living-pick-up-and-organize-downstairs":"LVG-040",
+      "living-sweep-laundry-room":"LVG-010",
+      "living-vacuum-and-mop-the-living-room-floor":"LVG-060",
+      "living-vacuum-stairs":"LVG-070",
+      "outdoor-organize-backyard-table-and-sitting-area":"OUT-020",
+      "outdoor-water-plants":"OUT-010",
+      "personal-clean-bedroom":"PER-010",
+      "pets-brush-peter-s-hair":"PET-040",
+      "pets-feed-peter-evening":"PET-060",
+      "pets-feed-peter-morning":"PET-050",
+      "pets-give-peter-a-bath":"PET-030",
+      "pets-make-dog-food":"PET-010",
+      "pets-pick-up-peter-s-toys-in-the-backyard":"PET-070",
+      "pets-wash-dog-dishes":"PET-020",
+      "restrooms-clean-downstairs-guest-restroom":"RST-020",
+      "restrooms-clean-upstairs-restroom":"RST-010",
+      "trash-collect-trash-place-in-outdoor-trash-bin":"TRS-010",
+      "upstairs-clean-and-organize-game-room":"UPS-030",
+      "upstairs-clean-office":"UPS-010",
+      "upstairs-vacuum-all-of-upstairs":"UPS-020"
+    };
+    FB.db.ref("_meta/migrated_static_keys").once("value").then(snap=>{
+      if(snap.val()) return;   // already done
+      FB.db.ref("completions").once("value").then(snap=>{
+        const val = snap.val() || {};
+        const writes = {}, deletes = [];
+        Object.keys(val).forEach(date=>{
+          Object.keys(val[date]).forEach(oldKey=>{
+            const newKey = SLUG_TO_ID[oldKey];
+            if(!newKey) return;   // deleted chore — drop it
+            const isAlreadyStatic = /^[A-Z]{2,3}-\d{3}$/.test(oldKey);
+            if(isAlreadyStatic) return;   // already migrated row
+            Object.keys(val[date][oldKey]).forEach(who=>{
+              writes[`completions/${date}/${newKey}/${who}`] = val[date][oldKey][who];
+            });
+            deletes.push(`completions/${date}/${oldKey}`);
+          });
+        });
+        // Apply all writes first, then delete old keys, then mark done
+        const allWrites = {...writes};
+        Promise.all([FB.db.ref().update(allWrites)])
+          .then(()=> Promise.all(deletes.map(p=>FB.db.ref(p).remove())))
+          .then(()=> FB.db.ref("_meta/migrated_static_keys").set(true))
+          .then(()=> console.log(`Migration complete: ${Object.keys(writes).length} records moved, ${deletes.length} old keys removed`))
+          .catch(e=> console.warn("Migration error:", e));
+      });
+    });
+    /* ---- end migration ---- */
+
     FB.db.ref("completions").on("value", snap=>{
       const val = snap.val() || {};
       done = {};
@@ -852,7 +925,7 @@ function weekIndex(d){
   sun.setDate(sun.getDate()-sun.getDay());                 // back up to Sunday
   return Math.floor(Date.UTC(sun.getFullYear(),sun.getMonth(),sun.getDate())/(7*24*3600*1000));
 }
-const BASE_WEEK = weekIndex(today);                          // the current week = Week A
+const BASE_WEEK = 2945;   // FIXED anchor (week of 2026-06-14): keeps every date's rotation permanent so history never re-assigns owners.
 function weekParity(d){ return (((weekIndex(d)-BASE_WEEK)%2)+2)%2; } // 0 = A, 1 = B
 function effWho(base,parity){
   if(base==="B"||base==="P"||base==="") return base;
@@ -865,16 +938,27 @@ function choresForDate(date){
     const base = c.days[wd];
     if(!base) return;
     if(base === "B"){                       // shared task -> both girls get their own copy
-      out.push({...c, i, who:"I"});
-      out.push({...c, i, who:"V"});
+      out.push({...c, i, who:"I", rot:false});
+      out.push({...c, i, who:"V", rot:false});
     } else {
-      out.push({...c, i, who:effWho(base, p)});
+      out.push({...c, i, who:effWho(base, p), rot:(base==="I"||base==="V")});
     }
   });
   return out;
 }
 function visible(list){ return filter==="all" ? list : list.filter(c=>c.who===filter); }
 const keyFor = (date,i,who) => iso(date)+"::"+i+"::"+who;
+function isPastDate(d){ return iso(d) < iso(today); }
+function resolveOwner(date, c){
+  // On past dates, read the OWNER FROM THE STORED RECORD so history stays frozen
+  // even when the weekly rotation flips or the chore list is edited later.
+  let owner = c.who, info = done[keyFor(date, c.key, owner)];
+  if(!info && c.rot && isPastDate(date)){
+    const alt = owner==="I" ? "V" : owner==="V" ? "I" : owner;
+    if(alt!==owner && done[keyFor(date, c.key, alt)]){ owner = alt; info = done[keyFor(date, c.key, alt)]; }
+  }
+  return {owner, info};
+}
 
 /* ============ AGENDA RENDER ============ */
 function renderAgenda(){
@@ -892,21 +976,27 @@ function renderAgenda(){
   const ul = document.getElementById("taskList");
   ul.innerHTML = "";
 
+  const viewingPast = isPastDate(selected);
+  const banner = document.getElementById("histBanner");
+  if(banner) banner.innerHTML = viewingPast
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Viewing past day — history is locked and shows who actually did each chore'
+    : '';
+
   if(!list.length){
     ul.innerHTML = '<li class="empty">Nothing scheduled here'+(filter!=="all"?" for this filter":"")+'. Enjoy the break! 🌿</li>';
   } else {
     list.forEach(c=>{
-      const w = WHO[c.who];
-      const k = keyFor(selected, c.key, c.who);
-      const info = done[k];
+      const {owner, info} = resolveOwner(selected, c);
+      const w = WHO[owner];
       const isDone = !!info;
+      const lockedPast = isPastDate(selected);
       let stampHtml = "";
       if(isDone && info && info.at){
         const t = new Date(info.at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
         stampHtml = `<span class="t-stamp">✓ ${t}</span>`;
       }
       const li = document.createElement("li");
-      li.className = "task"+(isDone?" done":"");
+      li.className = "task"+(isDone?" done":"")+(lockedPast?" frozen":"");
       li.innerHTML = `
         <input type="checkbox" class="check" ${isDone?"checked":""} aria-label="Mark done">
         <div class="t-main">
@@ -920,8 +1010,8 @@ function renderAgenda(){
         </div>
         <span class="chev">▶</span>`;
       const cb = li.querySelector(".check");
-      if(!canEdit(c.who)){ cb.disabled = true; li.classList.add("notmine"); }
-      cb.addEventListener("change",()=> setDone(selected, c.key, c.who, cb.checked));
+      if(lockedPast || !canEdit(owner)){ cb.disabled = true; li.classList.add("notmine"); }
+      cb.addEventListener("change",()=> setDone(selected, c.key, owner, cb.checked));
       li.querySelector(".t-main").addEventListener("click",()=>li.classList.toggle("open"));
       li.querySelector(".chev").addEventListener("click",()=>li.classList.toggle("open"));
       ul.appendChild(li);
@@ -933,7 +1023,7 @@ function renderAgenda(){
 function updateRing(){
   const list = visible(choresForDate(selected));
   const total = list.length;
-  const complete = list.filter(c=>done[keyFor(selected,c.key,c.who)]).length;
+  const complete = list.filter(c=>resolveOwner(selected,c).info).length;
   const pct = total ? Math.round(complete/total*100) : 0;
   const circ = 2*Math.PI*26;
   document.getElementById("ringFg").style.strokeDashoffset = circ - circ*pct/100;

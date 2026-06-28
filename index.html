@@ -660,40 +660,39 @@ const CATS = {
 const CHORES = [
   {c:"personal", n:"Clean bedroom", d:"Make the bed, clear the floor, and put away anything left out.", key:"PER-010", days:["","","","B","","","B"]},
 
-  {c:"kitchen", n:"Wash kitchen dishes", d:"Hand-wash everything in the sink, dry it, and put it away.", key:"KIT-010", days:["V","I","V","I","V","V","I"]},
-  {c:"kitchen", n:"Collect dishes from all rooms", d:"Walk the house and bring every cup and plate to the kitchen sink.", key:"KIT-020", days:["V","I","V","I","V","I","B"]},
-  {c:"kitchen", n:"Wipe kitchen counters", d:"Clean and wipe kitchen counters.", key:"KIT-030", days:["V","I","V","I","V","V","I"]},
-  {c:"kitchen", n:"Empty the dishwasher", d:"Unload clean dishes and return each item to its spot.", key:"KIT-040", days:["V","I","V","I","V","I","I"]},
+  {c:"kitchen", n:"Wash kitchen dishes", d:"Hand-wash everything in the sink, dry it, and put it away.", key:"KIT-010", days:["V","I","V","I","V","I","V"]},
+  {c:"kitchen", n:"Collect dishes from all rooms", d:"Walk the house and bring every cup and plate to the kitchen sink.", key:"KIT-020", days:["V","I","V","I","V","I","V"]},
+  {c:"kitchen", n:"Wipe kitchen counters", d:"Clean and wipe kitchen counters.", key:"KIT-030", days:["V","I","V","I","V","I","V"]},
+  {c:"kitchen", n:"Empty the dishwasher", d:"Unload clean dishes and return each item to its spot.", key:"KIT-040", days:["V","I","V","I","V","I","V"]},
 
-  {c:"restrooms", n:"Clean upstairs restroom", d:"Wipe the sink and counter, scrub the toilet, clean the mirror and floor.", key:"RST-010", days:["V","","","","I","",""]},
-  {c:"restrooms", n:"Clean downstairs guest restroom", d:"Wipe the sink and toilet, refill supplies, quick floor clean.", key:"RST-020", days:["","","","V","","","I"]},
+  {c:"restrooms", n:"Clean upstairs restroom", d:"Wipe the sink and counter, scrub the toilet, clean the mirror and floor.", key:"RST-010", days:["V","","","","V","",""]},
+  {c:"restrooms", n:"Clean downstairs guest restroom", d:"Wipe the sink and toilet, refill supplies, quick floor clean.", key:"RST-020", days:["","","","I","","","V"]},
 
-  {c:"upstairs", n:"Clean office", d:"Dust surfaces, tidy the desk, and vacuum the office floor.", key:"UPS-010", days:["","","","","","","B"]},
-  {c:"upstairs", n:"Vacuum all of upstairs", d:"Vacuum every upstairs room and the hallway.", key:"UPS-020", days:["","","","","","","I"]},
+  {c:"upstairs", n:"Vacuum all of upstairs", d:"Vacuum every upstairs room and the hallway.", key:"UPS-020", days:["","","","","","","V"]},
   {c:"upstairs", n:"Clean and organize game room", d:"Pick up clutter, organize and clean (wipe down) game room.", key:"UPS-030", days:["","I","","","","",""]},
 
-  {c:"living", n:"Sweep laundry room", d:"Sweep up lint, dust, and debris from the laundry room floor.", key:"LVG-010", days:["V","I","V","I","V","I","V"]},
+  {c:"living", n:"Sweep laundry room", d:"Sweep up lint, dust, and debris from the laundry room floor.", key:"LVG-010", days:["I","V","I","V","I","V","I"]},
   {c:"living", n:"Clean dining tables", d:"Wipe down all dining tables after meals.", key:"LVG-020", days:["I","V","I","V","I","V","I"]},
   {c:"living", n:"Clean french door windows", d:"Clean the living room french door glass inside and out — streak-free.", key:"LVG-030", days:["","","","","","","V"]},
   {c:"living", n:"Pick up and organize downstairs", d:"Pick up living room, pool table, dining room and surrounding 1st floor areas.", key:"LVG-040", days:["","","","","","","V"]},
   {c:"living", n:"Mirrors (Downstairs)", d:"Clean and wipe downstairs mirrors.", key:"LVG-050", days:["","","","V","","",""]},
   {c:"living", n:"Vacuum and mop the living room floor", d:"Vacuum and mop the living room rug and floor.", key:"LVG-060", days:["","","","","","","I"]},
-  {c:"living", n:"Vacuum stairs", d:"Vacuum each step and the landing.", key:"LVG-070", days:["","","","","","","V"]},
+  {c:"living", n:"Vacuum stairs", d:"Vacuum each step and the landing.", key:"LVG-070", days:["","","","","","","I"]},
 
-  {c:"laundry", n:"Wash and Dry family clothes", d:"Gather clothes from drity hampers and wash/dry.", key:"LDY-010", days:["I","","","","","",""]},
+  {c:"laundry", n:"Wash and Dry family clothes", d:"Gather clothes from drity hampers and wash/dry.", key:"LDY-010", days:["V","","","","","",""]},
   {c:"laundry", n:"Fold underwear & socks", d:"Match and fold socks and underwear for the whole house.", key:"LDY-020", days:["B","","","","","",""]},
   {c:"laundry", n:"Bring laundry downstairs", d:"Carry the dirty laundry baskets down to the laundry room and separate by colors into different hampers (prepare to wash).", key:"LDY-030", days:["B","","","","","",""]},
   {c:"laundry", n:"Put away clean clothes", d:"Put your clean, folded clothes where they belong.", key:"LDY-040", days:["B","B","B","B","B","B","B"]},
 
-  {c:"trash", n:"Collect trash & place in outdoor trash bin", d:"Empty the bins from rooms and restrooms, bag it, and place in outdoor trash bin.", key:"TRS-010", days:["","","I","","","V",""]},
+  {c:"trash", n:"Collect trash & place in outdoor trash bin", d:"Empty the bins from rooms and restrooms, bag it, and place in outdoor trash bin.", key:"TRS-010", days:["","","V","","","I",""]},
 
-  {c:"pets", n:"Make dog food", d:"Prepare and cook food for Peter. Store this food in the freezer in a plastic container.", key:"PET-010", days:["V","","","","","",""]},
+  {c:"pets", n:"Make dog food", d:"Prepare and cook food for Peter. Store this food in the freezer in a plastic container.", key:"PET-010", days:["I","","","","","",""]},
   {c:"pets", n:"Wash dog dishes", d:"Clean and refill the dog food and water bowls.", key:"PET-020", days:["I","V","I","V","I","V","I"]},
-  {c:"pets", n:"Give Peter a bath", d:"Bathe Peter, towel dry, and brush him out.", key:"PET-030", days:["","","","","","","I"]},
+  {c:"pets", n:"Give Peter a bath", d:"Bathe Peter, towel dry, and brush him out. (Every other week — alternates between Isabella and Victoria.)", key:"PET-030", bwStart:"I", days:["","","","","","","BW"]},
   {c:"pets", n:"Brush Peter's hair", d:"Brush both dogs to cut down on shedding and matting.", key:"PET-040", days:["","","I","","","",""]},
   {c:"pets", n:"Feed Peter (morning)", d:"Morning feeding for both dogs.", key:"PET-050", days:["I","V","I","V","I","V","I"]},
   {c:"pets", n:"Feed Peter (evening)", d:"Evening feeding for both dogs.", key:"PET-060", days:["I","V","I","V","I","V","I"]},
-  {c:"pets", n:"Pick up Peter's toys in the backyard", d:"Pick up Peter's toys in the backyard.", key:"PET-070", days:["","","","","","","V"]},
+  {c:"pets", n:"Pick up Peter's toys in the backyard", d:"Pick up Peter's toys in the backyard.", key:"PET-070", days:["","","","","","","I"]},
 
   {c:"outdoor", n:"Water plants", d:"Water front and backyard plants.", key:"OUT-010", days:["P","","","","P","",""]},
   {c:"outdoor", n:"Organize backyard table and sitting area", d:"Clean up and declutter covered area and wipe down table", key:"OUT-020", days:["","","","","","P",""]}
@@ -841,7 +840,6 @@ function startFirebase(){
       "restrooms-clean-upstairs-restroom":"RST-010",
       "trash-collect-trash-place-in-outdoor-trash-bin":"TRS-010",
       "upstairs-clean-and-organize-game-room":"UPS-030",
-      "upstairs-clean-office":"UPS-010",
       "upstairs-vacuum-all-of-upstairs":"UPS-020"
     };
     FB.db.ref("_meta/migrated_static_keys").once("value").then(snap=>{
@@ -937,6 +935,15 @@ function choresForDate(date){
   CHORES.forEach((c,i)=>{
     const base = c.days[wd];
     if(!base) return;
+    if(base === "BW"){                      // biweekly chore that alternates girls (e.g. dog bath)
+      const cyc = weekIndex(date) - BASE_WEEK;        // 0 = anchor week
+      if((((cyc % 2)+2)%2) !== 0) return;             // only happens every OTHER week
+      const occ = Math.floor(cyc/2);                  // which occurrence (…-1,0,1,2…)
+      const start = c.bwStart || "I";
+      const owner = ((((occ % 2)+2)%2) === 0) ? start : (start==="I" ? "V" : "I");
+      out.push({...c, i, who:owner, rot:false, bw:true});
+      return;
+    }
     if(base === "B"){                       // shared task -> both girls get their own copy
       out.push({...c, i, who:"I", rot:false});
       out.push({...c, i, who:"V", rot:false});
@@ -953,7 +960,7 @@ function resolveOwner(date, c){
   // On past dates, read the OWNER FROM THE STORED RECORD so history stays frozen
   // even when the weekly rotation flips or the chore list is edited later.
   let owner = c.who, info = done[keyFor(date, c.key, owner)];
-  if(!info && c.rot && isPastDate(date)){
+  if(!info && (c.rot || c.bw) && isPastDate(date)){
     const alt = owner==="I" ? "V" : owner==="V" ? "I" : owner;
     if(alt!==owner && done[keyFor(date, c.key, alt)]){ owner = alt; info = done[keyFor(date, c.key, alt)]; }
   }
